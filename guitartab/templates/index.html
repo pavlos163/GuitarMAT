@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Guitar Tabs</title>
+  </head>
+  <body>
+
+    {% if request == "GET": %}
+
+      <h1>Hello! Upload your audio file below:</h1>
+      <form method="POST" action="/" enctype="multipart/form-data">
+        <input name="file" type="file"/>
+        <input type="submit"/>
+      </form>
+
+    {% else: %}
+
+      <h1>You uploaded a file!</h1>
+      
+    {% endif %}
+  </body>
+</html>
