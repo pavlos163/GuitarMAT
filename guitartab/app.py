@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import librosa
 import numpy as np
 
-UPLOAD_FOLDER = '/uploads'
+UPLOAD_FOLDER = ''
 ALLOWED_EXTENSIONS = set(['wav', 'mp3'])
 
 app = Flask(__name__)
