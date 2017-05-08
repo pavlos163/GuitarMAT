@@ -30,8 +30,8 @@ def index():
       flash('No selected file')
       return redirect(request.url)
     if file and allowed_file(file.filename):
-      plot_filepath = handle_file(file)
-    return render_template('index.html', request="POST", filepath=plot_filepath)
+      handle_file(file)
+    return render_template('index.html', request="POST")
 
 def handle_file(file):
   filename = secure_filename(file.filename)
@@ -39,8 +39,6 @@ def handle_file(file):
   file.save(filepath)
   mir.save_plot(filepath)
   os.remove(filepath)
-  plot_filepath = PLOT_FOLDER + 'audio.png'
-  return plot_filepath
 
 if __name__ == "__main__":
   app.run()
