@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/')
 PLOT_FOLDER = os.path.join(APP_ROOT, 'static/plots/')
-ALLOWED_EXTENSIONS = set(['wav', 'mp3'])
+ALLOWED_EXTENSIONS = set(['.wav', '.mp3'])
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

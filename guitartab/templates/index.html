@@ -16,9 +16,15 @@
       </form>
 
       <h1>Or record your audio here!</h1>
-      <button id=startRecord onclick="startRecording()">Start</button>
-      <button id=stopRecord onclick="stopRecording()">Stop</button>
-
+      <div id="audio">
+        <p>
+          <button id=startRecord onclick="startRecording()">Start</button>
+          <button id=stopRecord onclick="stopRecording()">Stop</button>
+        </p>
+        <p>
+          <audio id=recordedAudio></audio>
+        </p>
+      </div>
     {% else: %}
 
       <img src='static/plots/audio.png'>
