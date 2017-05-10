@@ -2,8 +2,10 @@
 <html lang="en">
   <head>
     <title>Guitar Tabs</title>
+    <script src="static/js/record.js"></script>
   </head>
   <body>
+
 
     {% if request == "GET": %}
 
@@ -12,6 +14,10 @@
         <input name="file" type="file"/>
         <input type="submit"/>
       </form>
+
+      <h1>Or record your audio here!</h1>
+      <button id=startRecord onclick="startRecording()">Start</button>
+      <button id=stopRecord onclick="stopRecording()">Stop</button>
 
     {% else: %}
 

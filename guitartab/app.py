@@ -14,8 +14,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 
 def allowed_file(filename):
-  return '.' in filename and \
-    filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+  return (
+    '.' in filename 
+    and os.path.splitext(filename)[1].lower() in ALLOWED_EXTENSIONS
+  )
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
