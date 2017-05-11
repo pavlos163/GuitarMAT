@@ -7,7 +7,10 @@ navigator.mediaDevices.getUserMedia({audio:true})
         let blob = new Blob(audio,{type:'audio/x-mpeg-3'});
         recordedAudio.src = URL.createObjectURL(blob);
         recordedAudio.controls = true;
-        submit(blob);
+        audioDownload.href = recordedAudio.src;
+        audioDownload.download = 'audio.mp3';
+        audioDownload.innerHTML = 'Download';
+        // submit(blob);
      }
     }
   })
@@ -25,7 +28,7 @@ function stopRecording() {
   startRecord.disabled = false;
   stopRecord.disabled = true;
   rec.stop();
-
+  /*
   if (document.getElementById('submitDiv') != null) {
     return;
   }
@@ -43,22 +46,15 @@ function stopRecording() {
   // TODO: Maybe reset button?
 
   document.getElementById('audio').appendChild(submitDiv);
+  */
 }
 
+// TODO: This needs work. Submit button currently does not do anything.
+// Also, page does not get reloaded and therefore the results are not shown.
+// The POST request has to be done without AJAX.
+
+/*
 function submit(blob) {
-  /*
-  var http = new XMLHttpRequest();
-  var url = "/";
-  http.open("POST", url, true);
-
-  console.log("FormData:");
-  console.log(blob);
-  var formData = new FormData();
-  formData.append('file', blob);
-
-  http.setRequestHeader("Content-Type", "multipart/form-data");
-  http.send(formData);
-  */
   var fd = new FormData();
   fd.append('file', blob, 'audio.mp3');
   $.ajax({
@@ -73,3 +69,4 @@ function submit(blob) {
          console.log(data);
   });
 }
+*/
