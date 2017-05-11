@@ -12,6 +12,7 @@ ALLOWED_EXTENSIONS = set(['.wav', '.mp3'])
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
+app.secret_key = 'notverysecret'
 
 def allowed_file(filename):
   return (

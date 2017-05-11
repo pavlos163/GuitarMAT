@@ -7,6 +7,7 @@ navigator.mediaDevices.getUserMedia({audio:true})
         let blob = new Blob(audio,{type:'audio/x-mpeg-3'});
         recordedAudio.src = URL.createObjectURL(blob);
         recordedAudio.controls = true;
+        submit(blob);
      }
     }
   })
@@ -44,19 +45,31 @@ function stopRecording() {
   document.getElementById('audio').appendChild(submitDiv);
 }
 
-function submit() {
+function submit(blob) {
+  /*
   var http = new XMLHttpRequest();
-  var url = "";
-  var params = "src=" + recordedAudio.src;
+  var url = "/";
   http.open("POST", url, true);
 
-  http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  http.send(params);
-}
+  console.log("FormData:");
+  console.log(blob);
+  var formData = new FormData();
+  formData.append('file', blob);
 
-function resetRecord() {
-  recordedAudio = null;
-  startRecord.disabled = false;
-  stopRecord.disabled = true;
-  resetRecord.disabled = true;
+  http.setRequestHeader("Content-Type", "multipart/form-data");
+  http.send(formData);
+  */
+  var fd = new FormData();
+  fd.append('file', blob, 'audio.mp3');
+  $.ajax({
+      type: 'POST',
+      url: '/',
+      data: fd,
+      cache: false,
+      processData: false,
+      contentType: false,
+      enctype: 'multipart/form-data'
+  }).done(function(data) {
+         console.log(data);
+  });
 }
