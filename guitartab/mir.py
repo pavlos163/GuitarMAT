@@ -1,26 +1,61 @@
 import librosa
-import plot as plt
+import librosa.display
+import matplotlib.pylab as plt
 import numpy as np
 from numpy.fft import rfft
-from numpy import argmax, mean, diff, log
-from scipy.signal import fftconvolve, kaiser
+from numpy import argmax, mean, diff, log, unravel_index, arange, copy
+from scipy.signal import fftconvolve, kaiser, decimate
 from matplotlib.mlab import find
 
 def save_plot(filename):
   y, sr = librosa.load(filename, sr=40000)
-  
+
   D = librosa.stft(y)
 
-  pitches, magnitudes = librosa.core.piptrack(y=y, sr=sr, fmin=75, fmax=1600)
+  onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
+  oenv = librosa.onset.onset_strength(y=y, sr=sr)
 
-  np.set_printoptions(threshold=np.nan)
-  print pitches[np.nonzero(pitches)]
+  onset_bt = librosa.onset.onset_backtrack(onset_frames, oenv)
 
-  print(freq_from_fft(y, 44000))
-  print(freq_from_autocorr(y, 44000))
+  new_onset_bt = librosa.frames_to_samples(onset_bt)
 
-  plt.plot_waveform(y)
-  plt.plot_spectrogram(D)
+  print new_onset_bt[1:]
+
+  slices = np.split(y, new_onset_bt[1:])
+  for i in range(0, len(slices)):
+    print freq_from_hps(slices[i], 40000)
+
+  #for i in range(0, len(slices)):
+  #  print "---------------"
+  #  print ("Autocorr:")
+  #  print freq_from_autocorr(slices[i], 40000)
+  #  print ("FFT:")
+  #  print freq_from_fft(slices[i], 40000)
+  #  print ("HPS:")
+  #  print freq_from_hps(slices[i], 40000)
+
+  #for i in range(0, len(slices)):
+  #  stft_output = librosa.stft(slices[i])
+  #  plt.figure()
+  #  librosa.display.specshow(librosa.amplitude_to_db(stft_output, 
+  #    ref=np.max), y_axis='log', x_axis='time')
+  #  plt.title('Power Spectrogram')
+  #  plt.colorbar(format='%+2.0f dB')
+  #  plt.tight_layout()
+  #  plt.show()
+
+  # Autocorrelation and HPS produce the best results for E2.
+  #print freq_from_autocorr(y, 40000)
+  #print freq_from_fft(y, 40000)
+  #print freq_from_hps(y, 40000)
+
+  notes = []
+
+  #notes.append(librosa.hz_to_note(freq))
+  #print notes
+
+  #plt.plot_waveform(y)
+  #plt.plot_spectrogram(D)
 
 def freq_from_fft(signal, sr):
   N = len(signal)
@@ -48,3 +83,29 @@ def freq_from_autocorr(signal, sr):
   i_interp = parabolic(corr, i_peak)[0]
 
   return sr / i_interp
+
+def freq_from_hps(signal, fs):
+    """Estimate frequency using harmonic product spectrum
+    Low frequency noise piles up and overwhelms the desired peaks
+    """
+    N = len(signal)
+    signal -= mean(signal)  # Remove DC offset
+
+    # Compute Fourier transform of windowed signal
+    windowed = signal * kaiser(N, 100)
+
+    # Get spectrum
+    X = log(abs(rfft(windowed)))
+
+    # Downsample sum logs of spectra instead of multiplying
+    hps = copy(X)
+    for h in arange(2, 9): # TODO: choose a smarter upper limit
+        dec = decimate(X, h)
+        hps[:len(dec)] += dec
+
+    # Find the peak and interpolate to get a more accurate peak
+    i_peak = argmax(hps[:len(dec)])
+    i_interp = parabolic(hps, i_peak)[0]
+
+    # Convert to equivalent frequency
+    return fs * i_interp / N  # Hz
