@@ -34,7 +34,6 @@ def index():
       return redirect(request.url)
     if file and allowed_file(file.filename):
       pitches = handle_file(file)
-      print pitches
     return render_template('index.html', request="POST", pitches=pitches)
 
 def handle_file(file):
