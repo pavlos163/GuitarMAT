@@ -33,7 +33,6 @@ def index():
       flash('No selected file')
       return redirect(request.url)
     if file and allowed_file(file.filename):
-      print("Something?")
       handle_file(file)
     return render_template('index.html', request="POST")
 

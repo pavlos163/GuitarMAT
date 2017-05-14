@@ -10,49 +10,19 @@ from matplotlib.mlab import find
 def save_plot(filename):
   y, sr = librosa.load(filename, sr=40000)
 
-  D = librosa.stft(y)
-
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
-  oenv = librosa.onset.onset_strength(y=y, sr=sr)
-
-  onset_bt = librosa.onset.onset_backtrack(onset_frames, oenv)
-
-  new_onset_bt = librosa.frames_to_samples(onset_bt)
-
-  print new_onset_bt[1:]
-
-  slices = np.split(y, new_onset_bt[1:])
-  for i in range(0, len(slices)):
-    print freq_from_hps(slices[i], 40000)
-
-  #for i in range(0, len(slices)):
-  #  print "---------------"
-  #  print ("Autocorr:")
-  #  print freq_from_autocorr(slices[i], 40000)
-  #  print ("FFT:")
-  #  print freq_from_fft(slices[i], 40000)
-  #  print ("HPS:")
-  #  print freq_from_hps(slices[i], 40000)
-
-  #for i in range(0, len(slices)):
-  #  stft_output = librosa.stft(slices[i])
-  #  plt.figure()
-  #  librosa.display.specshow(librosa.amplitude_to_db(stft_output, 
-  #    ref=np.max), y_axis='log', x_axis='time')
-  #  plt.title('Power Spectrogram')
-  #  plt.colorbar(format='%+2.0f dB')
-  #  plt.tight_layout()
-  #  plt.show()
-
-  # Autocorrelation and HPS produce the best results for E2.
-  #print freq_from_autocorr(y, 40000)
-  #print freq_from_fft(y, 40000)
-  #print freq_from_hps(y, 40000)
+  pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
 
   notes = []
 
-  #notes.append(librosa.hz_to_note(freq))
-  #print notes
+  for i in range(0, len(onset_frames)):
+    # TODO: Check without +1
+    onset = onset_frames[i] + 1
+    index = magnitudes[:, onset].argmax()
+    pitch = pitches[index, onset]
+    notes.append(librosa.hz_to_note(pitch))
+
+  print notes
 
   #plt.plot_waveform(y)
   #plt.plot_spectrogram(D)
