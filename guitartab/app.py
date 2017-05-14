@@ -33,15 +33,17 @@ def index():
       flash('No selected file')
       return redirect(request.url)
     if file and allowed_file(file.filename):
-      handle_file(file)
-    return render_template('index.html', request="POST")
+      pitches = handle_file(file)
+      print pitches
+    return render_template('index.html', request="POST", pitches=pitches)
 
 def handle_file(file):
   filename = secure_filename(file.filename)
   filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(filepath)
-  mir.transcribe(filepath)
+  pitches = mir.transcribe(filepath)
   os.remove(filepath)
+  return pitches
 
 if __name__ == "__main__":
   app.run()
