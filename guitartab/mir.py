@@ -36,11 +36,14 @@ def detect_pitch(y, sr):
   # Checking the pitch some frames the onset time increased precision.
   onset_offset = 5
 
+  # print librosa.frames_to_time(onset_frames, sr=sr)
+
   for i in range(0, len(onset_frames)):
     onset = onset_frames[i] + onset_offset
     index = magnitudes[:, onset].argmax()
     pitch = pitches[index, onset]
-    notes.append(librosa.hz_to_note(pitch))
+    if (pitch != 0):
+      notes.append(librosa.hz_to_note(pitch))
 
   return notes
 
