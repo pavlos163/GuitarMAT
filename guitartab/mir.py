@@ -6,10 +6,27 @@ from numpy.fft import rfft
 from numpy import argmax, mean, diff, log, unravel_index, arange, copy
 from scipy.signal import fftconvolve, kaiser, decimate
 from matplotlib.mlab import find
+from music21 import *
 
-def save_plot(filename):
+def transcribe(filename):
   y, sr = librosa.load(filename, sr=40000)
 
+  pitches = detect_pitch(y, sr)
+
+  notes = convert_to_notes(pitches)
+  
+  # plt.plot_waveform(y)
+  # plt.plot_spectrogram(D)
+
+def convert_to_notes(pitches):
+  notes = []
+  pitches = sum(pitches, [])
+  for pitch in pitches:
+    notes.append(note.Note(pitch))
+
+  return notes
+
+def detect_pitch(y, sr):
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
   pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
 
@@ -22,11 +39,9 @@ def save_plot(filename):
     pitch = pitches[index, onset]
     notes.append(librosa.hz_to_note(pitch))
 
-  print notes
+  return notes
 
-  #plt.plot_waveform(y)
-  #plt.plot_spectrogram(D)
-
+# OTHER F0 DETECTION METHODS:
 def freq_from_fft(signal, sr):
   N = len(signal)
   windowed = signal * kaiser(N, 100)

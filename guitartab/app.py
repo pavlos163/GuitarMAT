@@ -40,7 +40,7 @@ def handle_file(file):
   filename = secure_filename(file.filename)
   filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(filepath)
-  mir.save_plot(filepath)
+  mir.transcribe(filepath)
   os.remove(filepath)
 
 if __name__ == "__main__":
