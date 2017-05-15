@@ -27,16 +27,12 @@ def convert_to_notes(pitches):
 
   return notes
 
-def detect_pitch(y, sr):
+# Checking the pitch some frames the onset time increased precision.
+def detect_pitch(y, sr, onset_offset=5):
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
-  pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=75)
+  pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=75, fmax=1400)
 
   notes = []
-
-  # Checking the pitch some frames the onset time increased precision.
-  onset_offset = 5
-
-  # print librosa.frames_to_time(onset_frames, sr=sr)
 
   for i in range(0, len(onset_frames)):
     onset = onset_frames[i] + onset_offset
