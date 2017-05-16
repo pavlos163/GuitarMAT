@@ -1,4 +1,5 @@
 import librosa
+import librosa.display
 import plot as plt
 import numpy as np
 import heapq
@@ -7,15 +8,18 @@ from music21 import *
 def transcribe(filename):
   y, sr = librosa.load(filename, sr=40000)
 
-  # D = librosa.stft(y)
+  D = librosa.stft(y)
+
+  fmin = 75
+  fmax = 1400
 
   pitches = detect_pitch(y, sr)
 
   # TODO: Create MusicXML file.
   notes = convert_to_notes(pitches)
 
-  # plt.plot_waveform(y)
-  # plt.plot_spectrogram(D)
+  plt.plot_waveform(y)
+  plt.plot_spectrogram(D, sr=sr, fmin=fmin, fmax=fmax)
 
   return pitches
 
@@ -28,9 +32,9 @@ def convert_to_notes(pitches):
   return notes
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, onset_offset=5):
+def detect_pitch(y, sr, onset_offset=5, fmin=75, fmax=1400):
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
-  pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=75, fmax=1400)
+  pitches, magnitudes = librosa.piptrack(y=y, sr=sr, fmin=fmin, fmax=fmax)
 
   notes = []
 
