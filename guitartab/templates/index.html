@@ -18,29 +18,34 @@
     </form>
   </div>
 
-
 <!--
-    <h1>Or record your audio here!</h1>
-    <div id="audio">
-      <p>
-        <button id=startRecord onclick="startRecording()">Start</button>
-        <button id=stopRecord onclick="stopRecording()">Stop</button>
-      </p>
-      <p>
-        <audio id=recordedAudio></audio>
-      </p>
-      <p>
-        <a id=audioDownload></a>
-      </p>
-    </div>
+  <h1>Or record your audio here!</h1>
+  <div id="audio">
+    <p>
+      <button id=startRecord onclick="startRecording()">Start</button>
+      <button id=stopRecord onclick="stopRecording()">Stop</button>
+    </p>
+    <p>
+      <audio id=recordedAudio></audio>
+    </p>
+    <p>
+      <a id=audioDownload></a>
+    </p>
+  </div>
 -->
 
   {% else: %}
 
+  <div class="jumbotron">
     <div class="container">
-      <p class="lead">{{pitches}}</p>
-      <a href=".">Upload another audio file</a>
+      <h1>Your music sheet</h1>
     </div>
+  </div>
+  
+  <div class="container">
+    <p class="lead">{{pitches}}</p>
+    <a href=".">Upload another audio file</a>
+  </div>
 
   {% endif %}
 {% endblock %}

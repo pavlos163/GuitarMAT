@@ -1,3 +1,4 @@
 .env/
 guitartab/static/plots
+guitartab/static/audio
 *.pyc

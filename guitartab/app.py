@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/')
 PLOT_FOLDER = os.path.join(APP_ROOT, 'static/plots/')
-ALLOWED_EXTENSIONS = set(['.wav', '.mp3'])
+ALLOWED_EXTENSIONS = set(['.wav', '.mp3', '.aif'])
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -35,15 +35,16 @@ def index():
       flash('No selected file')
       return redirect(request.url)
     if file and allowed_file(file.filename):
-      handle_file(file)
-    return render_template('index.html', request="POST")
+      pitches = handle_file(file)
+    return render_template('index.html', request="POST", pitches=pitches)
 
 def handle_file(file):
   filename = secure_filename(file.filename)
   filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(filepath)
-  mir.save_plot(filepath)
+  pitches = mir.transcribe(filepath)
   os.remove(filepath)
+  return pitches
 
 if __name__ == "__main__":
   app.run()
