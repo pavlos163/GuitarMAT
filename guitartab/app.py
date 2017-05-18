@@ -2,6 +2,7 @@ import os
 import mir
 from flask import Flask
 from flask import render_template, request, redirect, url_for, flash
+from flask_bootstrap import Bootstrap
 from werkzeug.utils import secure_filename
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -10,6 +11,7 @@ PLOT_FOLDER = os.path.join(APP_ROOT, 'static/plots/')
 ALLOWED_EXTENSIONS = set(['.wav', '.mp3'])
 
 app = Flask(__name__)
+Bootstrap(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 app.secret_key = 'notverysecret'

@@ -1,43 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Guitar Tabs</title>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript"></script>
-    <script src="static/js/record.js"></script>
-  </head>
-  <body>
+{%- extends "base.html" %}
+
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
+  {% if request == "GET": %}
+
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Automatic Guitar Music Transcription</h1>
+    </div>
+  </div>
+  <div class="container">
+    <p class="lead">Upload your audio file below:</p>
+    <form method="POST" action="/" enctype="multipart/form-data">
+      <input name="file" type="file"/>
+      <input type="submit"/>
+    </form>
+  </div>
 
 
-    {% if request == "GET": %}
+<!--
+    <h1>Or record your audio here!</h1>
+    <div id="audio">
+      <p>
+        <button id=startRecord onclick="startRecording()">Start</button>
+        <button id=stopRecord onclick="stopRecording()">Stop</button>
+      </p>
+      <p>
+        <audio id=recordedAudio></audio>
+      </p>
+      <p>
+        <a id=audioDownload></a>
+      </p>
+    </div>
+-->
 
-      <h1>Hello! Upload your audio file below:</h1>
-      <form method="POST" action="/" enctype="multipart/form-data">
-        <input name="file" type="file"/>
-        <input type="submit"/>
-      </form>
+  {% else: %}
 
-      <h1>Or record your audio here!</h1>
-      <div id="audio">
-        <p>
-          <button id=startRecord onclick="startRecording()">Start</button>
-          <button id=stopRecord onclick="stopRecording()">Stop</button>
-        </p>
-        <p>
-          <audio id=recordedAudio></audio>
-        </p>
-        <p>
-          <a id=audioDownload></a>
-        </p>
-      </div>
-    {% else: %}
-      {% print "something" %}
-
-      <img src='static/plots/audio.png'>
-      <img src='static/plots/spectrogram.png'>
-      
-      <br>
+    <div class="container">
+      <p class="lead">{{pitches}}</p>
       <a href=".">Upload another audio file</a>
+    </div>
 
-    {% endif %}
-  </body>
-</html>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript"></script>
+  <script src="static/js/record.js"></script>
+{% endblock %}
