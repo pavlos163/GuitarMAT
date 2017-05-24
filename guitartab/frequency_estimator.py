@@ -75,9 +75,9 @@ def freq_from_autocorr(signal, fs):
     """
     # Calculate autocorrelation (same thing as convolution, but with one input
     # reversed in time), and throw away the negative lags
-    signal -= mean(signal)  # Remove DC offset
+    signal -= mean(signal)  # Remove DC offset=
     corr = fftconvolve(signal, signal[::-1], mode='full')
-    corr = corr[len(corr)/2:]
+    corr = corr[int(len(corr)/2):]
 
     # Find the first low point
     d = diff(corr)

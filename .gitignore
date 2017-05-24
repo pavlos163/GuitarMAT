@@ -2,3 +2,4 @@
 guitartab/static/plots
 guitartab/static/audio
 *.pyc
+*.mp3
