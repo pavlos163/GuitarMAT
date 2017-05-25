@@ -18,24 +18,37 @@ def transcribe(filename):
   filtered_y = highpass_filter(y, sr)
 
   D = librosa.stft(filtered_y)
-  fmin = 75
-  fmax = 1800
 
-  pitches = []
+  stft_pitches = detect_pitch(filtered_y, sr, 'stft')
+  autocorr_pitches = detect_pitch(filtered_y, sr, 'autocorr')
 
-  pitches = detect_pitch(filtered_y, sr, 'autocorr')
+  pitches = autocorr_pitches
+
+  #pitches = []
+
+  #for i in range(0, len(stft_pitches)):
+  #  if autocorr_pitches[i] <= 1400:
+  #    pitches.append(autocorr_pitches[i])
+  #    print "Appended autocorr."
+  #  else:
+  #    pitches.append(stft_pitches[i])
+  #    print "Appended stft"
+
+  notes = []
+  for pitch in pitches:
+    notes.append(get_note(pitch))
   # pitches = detect_pitch(filtered_y, sr, 'stft')
 
   # TODO: Create MusicXML file.
-  notes = convert_to_notes(pitches)
+  # notes = convert_to_notes(pitches)
 
-  notes.show()
+  # notes.show()
 
   # plot.plot_waveform(y)
   # plot.plot_spectrogram(D, sr)
   # plt.close('all')
   
-  return pitches
+  return notes
 
 def convert_to_notes(pitches):
   notes = stream.Stream()
@@ -50,7 +63,7 @@ def convert_to_notes(pitches):
 def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
   onset_frames = get_onset_frames(y, sr)
 
-  notes = []
+  result_pitches = []
 
   if method == 'stft':
       pitches, magnitudes = librosa.piptrack(y=y, 
@@ -65,15 +78,15 @@ def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
         pitch = pitches[index, onset]
         # duration = detect_duration(magnitudes, index, onset)
         if (pitch != 0):
-          notes.append(get_note(pitch))
+          result_pitches.append(pitch)
 
   elif method == 'autocorr':
     slices = segment_signal(y, sr)
     for segment in slices:
       pitch = freq_from_autocorr(segment, sr)
-      notes.append(get_note(pitch))
+      result_pitches.append(pitch)
 
-  return notes
+  return result_pitches
 
 # THIS NEEDS TESTING AND COMMENTS.
 def filter_onset_frames(pitches, magnitudes, onset_frames,
@@ -146,7 +159,7 @@ def highpass_filter(y, sr):
 
   return filtered_audio
 
-def segment_signal(y, sr, onset_frames=None, offset=0.1):
+def segment_signal(y, sr, onset_frames=None):
   if (onset_frames == None):
     onset_frames = remove_dense_onsets(librosa.onset.onset_detect(y=y, sr=sr))
 
@@ -159,9 +172,10 @@ def segment_signal(y, sr, onset_frames=None, offset=0.1):
 
   #slices = np.split(y, new_onset_bt[1:])
   
-  offset_samples = int(librosa.time_to_samples(offset, sr))
+  offset_start = int(librosa.time_to_samples(0.01, sr))
+  offset_end = int(librosa.time_to_samples(0.099, sr))
 
-  slices = np.array([y[i : i + offset_samples] for i
+  slices = np.array([y[i + offset_start : i + offset_end] for i
     in librosa.frames_to_samples(onset_frames)])
 
   return slices
