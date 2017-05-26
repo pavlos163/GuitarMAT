@@ -40,9 +40,9 @@ def transcribe(filename):
   # pitches = detect_pitch(filtered_y, sr, 'stft')
 
   # TODO: Create MusicXML file.
-  # notes = convert_to_notes(pitches)
+  note_stream = convert_to_notes(notes)
 
-  # notes.show()
+  note_stream.write("musicxml", "piece.mxl")
 
   # plot.plot_waveform(y)
   # plot.plot_spectrogram(D, sr)
