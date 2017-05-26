@@ -24,6 +24,9 @@ def transcribe(filename):
 
   pitches = autocorr_pitches
 
+  print pitches
+  print stft_pitches
+
   #pitches = []
 
   #for i in range(0, len(stft_pitches)):
@@ -42,7 +45,7 @@ def transcribe(filename):
   # TODO: Create MusicXML file.
   note_stream = convert_to_notes(notes)
 
-  note_stream.write("musicxml", "piece.mxl")
+  note_stream.write("musicxml", "static/piece.mxl")
 
   # plot.plot_waveform(y)
   # plot.plot_spectrogram(D, sr)
@@ -61,16 +64,13 @@ def convert_to_notes(pitches):
 
 # Checking the pitch some frames the onset time increased precision.
 def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
-  onset_frames = get_onset_frames(y, sr)
-
   result_pitches = []
 
-  if method == 'stft':
-      pitches, magnitudes = librosa.piptrack(y=y, 
-        sr=sr, fmin=fmin, fmax=fmax)
+  pitches, magnitudes = librosa.piptrack(y=y, 
+    sr=sr, fmin=fmin, fmax=fmax)
 
-      filtered_onset_frames = filter_onset_frames(pitches, magnitudes,
-        onset_frames, onset_offset)
+  if method == 'stft':
+      filtered_onset_frames = get_onset_frames(y, sr, pitches, magnitudes)
 
       for i in range(0, len(filtered_onset_frames)):
         onset = filtered_onset_frames[i] + onset_offset
@@ -81,7 +81,7 @@ def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
           result_pitches.append(pitch)
 
   elif method == 'autocorr':
-    slices = segment_signal(y, sr)
+    slices = segment_signal(y, sr, pitches, magnitudes)
     for segment in slices:
       pitch = freq_from_autocorr(segment, sr)
       result_pitches.append(pitch)
@@ -89,14 +89,15 @@ def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
   return result_pitches
 
 # THIS NEEDS TESTING AND COMMENTS.
-def filter_onset_frames(pitches, magnitudes, onset_frames,
-  onset_offset, threshold=0):
-  
-  # STEP 1: Apply threshold of 7:
+def filter_onset_frames(pitches, magnitudes, onset_frames, threshold=5):
+  # STEP 1: Apply threshold:
   onset_frames = [onset for onset in onset_frames
     if magnitudes[:, onset].max() > threshold]
 
-  # STEP 2: When an onset time is after an onset time of the same note with
+  # STEP 2: Remove dense onsets:
+  onset_frames = remove_dense_onsets(onset_frames)
+
+  # STEP 3: When an onset time is after an onset time of the same note with
   # a greater magnitude, then it is ignored.
   prev_pitch = 0
   prev_magnitude = 0
@@ -159,9 +160,9 @@ def highpass_filter(y, sr):
 
   return filtered_audio
 
-def segment_signal(y, sr, onset_frames=None):
+def segment_signal(y, sr, pitches, magnitudes, onset_frames=None):
   if (onset_frames == None):
-    onset_frames = remove_dense_onsets(librosa.onset.onset_detect(y=y, sr=sr))
+    onset_frames = get_onset_frames(y, sr, pitches, magnitudes)
 
   # This splits the signal into slices that sum up to the whole signal according
   # to onset_bt.
@@ -180,9 +181,9 @@ def segment_signal(y, sr, onset_frames=None):
 
   return slices
 
-def get_onset_frames(y, sr):
+def get_onset_frames(y, sr, pitches, magnitudes):
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
-  return remove_dense_onsets(onset_frames)
+  return filter_onset_frames(pitches, magnitudes, onset_frames)
 
 def remove_dense_onsets(onset_frames):
   indices_to_remove = []
@@ -190,6 +191,7 @@ def remove_dense_onsets(onset_frames):
   # Remove onsets that are too close together.
   for i in range(1, len(onset_frames)):
     if onset_frames[i] - onset_frames[i - 1] <= 5:
+      print librosa.frames_to_time(5, 40000)
       indices_to_remove.append(i)
 
   return np.delete(onset_frames, indices_to_remove)
