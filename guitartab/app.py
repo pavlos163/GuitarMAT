@@ -27,6 +27,7 @@ def index():
   if request.method == "GET":
     return render_template('index.html', request="GET")
   else:
+    print request.files
     if 'file' not in request.files:
       flash('No file part')
       return redirect(request.url)
@@ -36,6 +37,9 @@ def index():
       return redirect(request.url)
     if file and allowed_file(file.filename):
       pitches = handle_file(file)
+    else:
+      flash('Wrong file extension.')
+      return redirect(request.url)
     return render_template('index.html', request="POST", pitches=pitches)
 
 def handle_file(file):
