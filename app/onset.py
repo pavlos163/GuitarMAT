@@ -1,16 +1,16 @@
 import librosa
 import numpy as np
 import madmom.features.onsets as madmom
-from librosa.core import hz_to_note
+from librosa.core import hz_to_note, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
-def get_onset_frames(filename):
-  proc = madmom.OnsetPeakPickingProcessor(fps=300, threshold=5, pre_max=1. / 300., post_max=1)
+def get_onset_frames(filename, sr):
+  proc = madmom.OnsetPeakPickingProcessor(fps=300, threshold=10, pre_max=1. / 300., post_max=1)
 
   sodf = madmom.SpectralOnsetProcessor(onset_method='superflux', fps=300,
     filterbank=LogarithmicFilterbank, num_bands=24, log=np.log10)(filename)
 
-  return proc(sodf)
+  return time_to_frames(proc(sodf), sr)
 
 # This is not used anymore, as superflux proved to be more accurate.
 def detect_onset_frames(y, sr, pitches, magnitudes):

@@ -1,5 +1,6 @@
 import app
 import mir
+import onset
 import os
 import itertools
 import difflib
@@ -7,7 +8,15 @@ import difflib
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
 
-def eval():
+# Wrong results in onsets:
+# [['C4'], ['C#4'], ['D4'], ['D#4'], ['E4']]
+# [['A2'], ['A#2'], ['B2']]
+# [['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
+# [['C5'], ['C#5']]
+# [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
+# Giorgos recordings: 6 strings 100%
+
+def eval_pitch():
   scores = []
 
   scores.append(get_score('Guitar.ff.sulA.C4E4.mp3', 
@@ -72,5 +81,7 @@ def get_score(filename, correct):
 def flatten(l):
   return list(itertools.chain.from_iterable(l))
 
+# TODO: eval_onset
+
 if __name__ == "__main__":
-  eval()
+  eval_pitch()

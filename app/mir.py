@@ -14,15 +14,7 @@ def transcribe(filename):
   sr = 44100
   music21.environment.set('musicxmlPath', '/usr/bin/musescore')
 
-  # proc = madmom.OnsetPeakPickingProcessor()
-
-  # onset_detector = madmom.SpectralOnsetProcessor()(filename)
-  # print proc(onset_detector)
-
-  # onset_detector = madmom.SpectralOnsetProcessor(onset_method='superflux')(filename)
-  # print proc(onset_detector)
-
-  onset_frames = get_onset_frames(filename)
+  onset_frames = get_onset_frames(filename, sr)
 
   y, sr = librosa.load(filename, sr=sr)
 
@@ -30,7 +22,7 @@ def transcribe(filename):
 
   D = librosa.stft(filtered_y)
 
-  # stft_pitches = detect_pitch(filtered_y, sr, 'stft')
+  stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'stft')
   autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
 
   pitches = autocorr_pitches
@@ -60,7 +52,7 @@ def convert_to_notes(pitches):
   return notes
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=5, fmin=75, fmax=1400):
+def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=2, fmin=75, fmax=1400):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
