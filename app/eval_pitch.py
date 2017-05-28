@@ -1,6 +1,5 @@
 import app
 import mir
-import onset
 import os
 import itertools
 import difflib
@@ -16,7 +15,7 @@ AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
 # [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
 # Giorgos recordings: 6 strings 100%
 
-def eval_pitch():
+def eval():
   scores = []
 
   scores.append(get_score('Guitar.ff.sulA.C4E4.mp3', 
@@ -84,4 +83,4 @@ def flatten(l):
 # TODO: eval_onset
 
 if __name__ == "__main__":
-  eval_pitch()
+  eval()

@@ -4,7 +4,7 @@ import madmom.features.onsets as madmom
 from librosa.core import hz_to_note, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
-def get_onset_frames(filename, sr):
+def get_onset_frames(filename, sr=44100):
   proc = madmom.OnsetPeakPickingProcessor(fps=300, threshold=10, pre_max=1. / 300., post_max=1)
 
   sodf = madmom.SpectralOnsetProcessor(onset_method='superflux', fps=300,

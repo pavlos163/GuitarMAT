@@ -25,7 +25,7 @@ def transcribe(filename):
   stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'stft')
   autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
 
-  pitches = autocorr_pitches
+  pitches = stft_pitches
 
   notes = []
   for pitch in pitches:
