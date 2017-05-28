@@ -24,7 +24,7 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
-  filtered_y = apply_filters(y, sr)
+  filtered_y = filter(y, sr)
 
   D = librosa.stft(filtered_y)
 
@@ -219,8 +219,3 @@ def detect_duration(magnitudes, bin, time_frame):
 
 def get_note(pitch):
   return librosa.hz_to_note(pitch)
-
-def apply_filters(y, sr):
-  # High-pass filter to remove low frequency noise.
-  y = lowpass_filter(y, sr)
-  return y
