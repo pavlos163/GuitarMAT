@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plot
 import music21
-# import madmom.features.onsets as madmom
-# from madmom.audio.filters import LogarithmicFilterbank
 from music21 import *
 from librosa.core import hz_to_note
 from onset import get_onset_frames
@@ -24,6 +22,8 @@ def transcribe(filename):
   # onset_detector = madmom.SpectralOnsetProcessor(onset_method='superflux')(filename)
   # print proc(onset_detector)
 
+  onset_frames = get_onset_frames(filename)
+
   y, sr = librosa.load(filename, sr=sr)
 
   filtered_y = filter(y, sr)
@@ -31,12 +31,9 @@ def transcribe(filename):
   D = librosa.stft(filtered_y)
 
   # stft_pitches = detect_pitch(filtered_y, sr, 'stft')
-  autocorr_pitches = detect_pitch(filtered_y, sr, 'autocorr')
+  autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
 
   pitches = autocorr_pitches
-
-  # print autocorr_pitches
-  # print stft_pitches
 
   notes = []
   for pitch in pitches:
@@ -63,19 +60,15 @@ def convert_to_notes(pitches):
   return notes
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
+def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=5, fmin=75, fmax=1400):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
     sr=sr, fmin=fmin, fmax=fmax)
 
   if method == 'stft':
-      filtered_onset_frames = get_onset_frames(y, sr, pitches, magnitudes)
-
-      # print librosa.frames_to_time(filtered_onset_frames, sr)
-
-      for i in range(0, len(filtered_onset_frames)):
-        onset = filtered_onset_frames[i] + onset_offset
+      for i in range(0, len(onset_frames)):
+        onset = onset_frames[i] + onset_offset
         index = magnitudes[:, onset].argmax()
         pitch = pitches[index, onset]
         # duration = detect_duration(magnitudes, index, onset)
@@ -83,7 +76,7 @@ def detect_pitch(y, sr, method='stft', onset_offset=5, fmin=75, fmax=1400):
           result_pitches.append(pitch)
 
   elif method == 'autocorr':
-    slices = segment_signal(y, sr, pitches, magnitudes)
+    slices = segment_signal(y, sr, onset_frames)
     for segment in slices:
       pitch = freq_from_autocorr(segment, sr)
       result_pitches.append(pitch)
@@ -125,9 +118,7 @@ def filter(y, sr):
 
   return filtered_audio
 
-def segment_signal(y, sr, pitches, magnitudes, onset_frames=None):
-  if (onset_frames == None):
-    onset_frames = get_onset_frames(y, sr, pitches, magnitudes)
+def segment_signal(y, sr, onset_frames):
 
   # This splits the signal into slices that sum up to the whole signal according
   # to onset_bt.
