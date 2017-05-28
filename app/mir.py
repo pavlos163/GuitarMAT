@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plot
 import music21
+# import madmom.features.onsets as madmom
+# from madmom.audio.filters import LogarithmicFilterbank
 from music21 import *
 from scipy import signal
 from frequency_estimator import freq_from_autocorr
@@ -12,10 +14,17 @@ def transcribe(filename):
   sr = 44100
   music21.environment.set('musicxmlPath', '/usr/bin/musescore')
 
+  # proc = madmom.OnsetPeakPickingProcessor()
+
+  # onset_detector = madmom.SpectralOnsetProcessor()(filename)
+  # print proc(onset_detector)
+
+  # onset_detector = madmom.SpectralOnsetProcessor(onset_method='superflux')(filename)
+  # print proc(onset_detector)
+
   y, sr = librosa.load(filename, sr=sr)
 
-  # High-pass filter to remove low frequency noise.
-  filtered_y = highpass_filter(y, sr)
+  filtered_y = apply_filters(y, sr)
 
   D = librosa.stft(filtered_y)
 
@@ -140,27 +149,22 @@ def get_peaks(pitches, magnitudes, onset_frames, n=5):
 
     return candidate_list
 
-def highpass_filter(y, sr):
-  # Parameters
-  # time_start = 0  # seconds
-  # time_end = 1  # seconds
-  filter_stop_freq = 60  # Hz
-  filter_pass_freq = 80  # Hz
+def filter(y, sr):
+  # Removes frequencies lower than 60Hz and higher than 2000Hz.
+  low_stop = 60  # Hz
+  low_pass = 80
+  high_pass = 1800
+  high_stop = 2000
   filter_order = 1001
 
   # High-pass filter
   nyquist_rate = sr / 2.
-  desired = (0, 0, 1, 1)
-  bands = (0, filter_stop_freq, filter_pass_freq, nyquist_rate)
+  desired = (0, 0, 1, 1, 0, 0)
+  bands = (0, low_stop, low_pass, high_pass, high_stop, nyquist_rate)
   filter_coefs = signal.firls(filter_order, bands, desired, nyq=nyquist_rate)
 
   # Apply high-pass filter
   filtered_audio = signal.filtfilt(filter_coefs, [1], y)
-
-  # Only analyze the audio between time_start and time_end
-  # time_seconds = np.arange(filtered_audio.size, dtype=float) / sr
-  # audio_to_analyze = filtered_audio[(time_seconds >= time_start) &
-  #                                 (time_seconds <= time_end)]
 
   return filtered_audio
 
@@ -215,3 +219,8 @@ def detect_duration(magnitudes, bin, time_frame):
 
 def get_note(pitch):
   return librosa.hz_to_note(pitch)
+
+def apply_filters(y, sr):
+  # High-pass filter to remove low frequency noise.
+  y = lowpass_filter(y, sr)
+  return y
