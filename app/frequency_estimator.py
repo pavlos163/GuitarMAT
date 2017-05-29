@@ -97,6 +97,7 @@ def freq_from_hps(signal, fs):
 
     Low frequency noise piles up and overwhelms the desired peaks
     """
+    print "HPS:"
     N = len(signal)
     signal -= mean(signal)  # Remove DC offset
 
@@ -108,7 +109,7 @@ def freq_from_hps(signal, fs):
 
     # Downsample sum logs of spectra instead of multiplying
     hps = copy(X)
-    for h in arange(2, 9): # TODO: choose a smarter upper limit
+    for h in arange(2, 6): # TODO: choose a smarter upper limit
         dec = decimate(X, h)
         hps[:len(dec)] += dec
 

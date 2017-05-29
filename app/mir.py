@@ -7,8 +7,8 @@ import music21
 from music21 import *
 from librosa.core import hz_to_note, frames_to_time
 from onset import get_onset_frames
-from scipy import signal
-from frequency_estimator import freq_from_autocorr
+from scipy.signal import butter, lfilter
+from frequency_estimator import freq_from_autocorr, freq_from_hps
 
 def transcribe(filename):
   sr = 44100
@@ -16,18 +16,26 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  # Get onset times.
   onset_frames = get_onset_frames(filename, sr)
 
-  print frames_to_time(onset_frames, sr)
+  # Filter the signal.
+  # filtered_y = bandpass_filter(y, sr, 80., 4000.)
+  filtered_y = y
 
-  filtered_y = filter(y, sr)
+  # D = librosa.stft(filtered_y)
 
-  D = librosa.stft(filtered_y)
-
+  # Detect pitch with different methods:
   stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'stft')
-  autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
+  print stft_pitches
 
-  pitches = stft_pitches
+  autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
+  print autocorr_pitches
+
+  hps_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
+  print hps_pitches
+
+  pitches = hps_pitches
 
   notes = []
   for pitch in pitches:
@@ -54,7 +62,7 @@ def convert_to_notes(pitches):
   return notes
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=2, fmin=75, fmax=1400):
+def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=0, fmin=80, fmax=4000):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
@@ -75,6 +83,11 @@ def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=2, fmin=75, fm
       pitch = freq_from_autocorr(segment, sr)
       result_pitches.append(pitch)
 
+  elif method == 'hps':
+    slices = segment_signal(y, sr, onset_frames)
+    for segment in slices:
+      pitch = freq_from_hps(segment, sr)
+      result_pitches.append(pitch)
   return result_pitches
 
 # For each note played, get the n strongest peaks in the frequency spectrum.
@@ -93,24 +106,17 @@ def get_peaks(pitches, magnitudes, onset_frames, n=5):
 
     return candidate_list
 
-def filter(y, sr):
-  # Removes frequencies lower than 60Hz and higher than 2000Hz.
-  low_stop = 60  # Hz
-  low_pass = 80
-  high_pass = 1800
-  high_stop = 2000
-  filter_order = 1001
-
-  # High-pass filter
+def bandpass_filter(y, sr, lowcut, highcut):
+  # Setup parameters.
   nyquist_rate = sr / 2.
-  desired = (0, 0, 1, 1, 0, 0)
-  bands = (0, low_stop, low_pass, high_pass, high_stop, nyquist_rate)
-  filter_coefs = signal.firls(filter_order, bands, desired, nyq=nyquist_rate)
+  filter_order = 1001
+  normalized_low = lowcut / nyquist_rate
+  normalized_high = highcut / nyquist_rate
 
-  # Apply high-pass filter
-  filtered_audio = signal.filtfilt(filter_coefs, [1], y)
-
-  return filtered_audio
+  b, a = butter(filter_order, [normalized_low, normalized_high], btype='bandpass')
+  
+  y = lfilter(b, a, y)
+  return y
 
 def segment_signal(y, sr, onset_frames):
 
@@ -123,10 +129,11 @@ def segment_signal(y, sr, onset_frames):
 
   #slices = np.split(y, new_onset_bt[1:])
   
+  # TODO: Choose appropriate offsets.
   offset_start = int(librosa.time_to_samples(0.01, sr))
-  offset_end = int(librosa.time_to_samples(0.099, sr))
+  offset_end = int(librosa.time_to_samples(0.1, sr))
 
-  slices = np.array([y[i + offset_start : i + offset_end] for i
+  slices = np.array([y[i : i + offset_end] for i
     in librosa.frames_to_samples(onset_frames)])
 
   return slices
