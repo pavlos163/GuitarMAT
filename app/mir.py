@@ -5,7 +5,7 @@ import numpy as np
 import plot
 import music21
 from music21 import *
-from librosa.core import hz_to_note
+from librosa.core import hz_to_note, frames_to_time
 from onset import get_onset_frames
 from scipy import signal
 from frequency_estimator import freq_from_autocorr
@@ -14,9 +14,11 @@ def transcribe(filename):
   sr = 44100
   music21.environment.set('musicxmlPath', '/usr/bin/musescore')
 
+  y, sr = librosa.load(filename, sr=sr)
+
   onset_frames = get_onset_frames(filename, sr)
 
-  y, sr = librosa.load(filename, sr=sr)
+  print frames_to_time(onset_frames, sr)
 
   filtered_y = filter(y, sr)
 

@@ -1,16 +1,40 @@
 import librosa
 import numpy as np
 import madmom.features.onsets as madmom
-from librosa.core import hz_to_note, time_to_frames
+from librosa.core import hz_to_note, frames_to_time, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
 def get_onset_frames(filename, sr=44100):
-  proc = madmom.OnsetPeakPickingProcessor(fps=300, threshold=10, pre_max=1. / 300., post_max=1)
+  
+  # BEST! Avg. error: 0.009
+  proc = madmom.OnsetPeakPickingProcessor(threshold=17, pre_max=0.1, 
+  post_max=0.1, pre_avg=0.2, post_avg=0.2, smooth=0.1)
+  sodf = madmom.SpectralOnsetProcessor(onset_method='superflux',
+    filterbank=LogarithmicFilterbank, num_bands=24, log=np.log10, norm=True)(filename)
 
-  sodf = madmom.SpectralOnsetProcessor(onset_method='superflux', fps=300,
-    filterbank=LogarithmicFilterbank, num_bands=24, log=np.log10)(filename)
+  # Onset detection in hard songs will require more bands?
+  # proc = madmom.OnsetPeakPickingProcessor(threshold=17)
+  # sodf = madmom.SpectralOnsetProcessor(onset_method='superflux',
+  #   filterbank=LogarithmicFilterbank, num_bands=250, log=np.log10, norm=True)(filename)
 
-  return time_to_frames(proc(sodf), sr)
+  # proc = madmom.OnsetPeakPickingProcessor(threshold=8, pre_max=1. / 200., post_max=1./ 200)
+  # sodf = madmom.SpectralOnsetProcessor(onset_method='complex_flux',
+  #   filterbank=LogarithmicFilterbank, num_bands=48, log=np.log10, norm=True)(filename)
+
+  # proc = madmom.OnsetPeakPickingProcessor(threshold=5, pre_max=1. / 300., post_max=0.5)
+  # sodf = madmom.SpectralOnsetProcessor(onset_method='spectral_diff',
+  #   filterbank=LogarithmicFilterbank, num_bands=100, log=np.log10, norm=True)(filename)
+
+  # Good average error but only for studio-recorded samples.
+  # Average error in general is 0.095 but error for recorded samples is often more than 50%.
+  # proc = madmom.OnsetPeakPickingProcessor(threshold=0.85, pre_max=1. / 200., 
+  # post_max=1. / 200, pre_avg = 0.1, post_avg = 0.1)
+  # sodf = madmom.CNNOnsetProcessor(filterbank=LogarithmicFilterbank, 
+  #   log=np.log10, norm=True)(filename)
+
+  onset_frames  = time_to_frames(proc(sodf), sr)
+
+  return onset_frames
 
 # This is not used anymore, as superflux proved to be more accurate.
 def detect_onset_frames(y, sr, pitches, magnitudes):
@@ -22,8 +46,7 @@ def filter_onset_frames(pitches, magnitudes, onset_frames, ampl_thresh=8):
   print "Before STEP 1:"
   print librosa.frames_to_time(onset_frames, 44100)
   # STEP 1: Apply threshold:
-  onset_frames = [onset for onset in onset_frames
-    if magnitudes[:, onset].max() > ampl_thresh]
+  onset_frames = filter_amplitude_threshold(onset_frames, magnitudes)
 
   print "After STEP 1:"
   print librosa.frames_to_time(onset_frames, 44100)
@@ -57,6 +80,12 @@ def filter_onset_frames(pitches, magnitudes, onset_frames, ampl_thresh=8):
   print "After STEP 3:"
   print librosa.frames_to_time(final_filtered_onset_frames, 44100)
   return final_filtered_onset_frames
+
+def filter_amplitude_threshold(onset_frames, magnitudes, ampl_thresh=1):
+  onset_frames = [onset for onset in onset_frames
+    if magnitudes[:, onset].max() > ampl_thresh]
+
+  return onset_frames
 
 def remove_dense_onsets(onset_frames):
   indices_to_remove = []

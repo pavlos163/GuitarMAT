@@ -1,17 +1,10 @@
 import app
 import onset
+import librosa
 import os
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
-
-# Wrong results in onsets:
-# [['C4'], ['C#4'], ['D4'], ['D#4'], ['E4']]
-# [['A2'], ['A#2'], ['B2']]
-# [['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
-# [['C5'], ['C#5']]
-# [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
-# Giorgos recordings: 6 strings 100%
 
 def eval():
   scores = []
@@ -40,12 +33,16 @@ def eval():
   scores.append(get_score('4thSTRING.wav', 23))
   scores.append(get_score('5thSTRING.wav', 24))
   scores.append(get_score('6thSTRING.wav', 23))
+  scores.append(get_score('3dsCscale.wav', 15))
+  scores.append(get_score('cmajor.wav', 29))
+  scores.append(get_score('echromatic.wav', 57))
 
   print "Average error:"
   print sum(scores) / float(len(scores))
 
 def get_score(filename, correct):
-  result = len(onset.get_onset_frames(AUDIO_FOLDER + filename))
+  onset_frames = onset.get_onset_frames(AUDIO_FOLDER + filename)
+  result = len(onset_frames)
   error = abs(float(correct) - float(result)) / correct
   if error != 0:
     print "In {}:".format(filename)
