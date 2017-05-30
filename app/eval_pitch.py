@@ -66,6 +66,7 @@ def eval():
   print sum(scores) / float(len(scores))
 
 def get_score(filename, correct):
+  print filename
   result = mir.transcribe(AUDIO_FOLDER + filename)
   s = difflib.SequenceMatcher(None, flatten(result), flatten(correct))
   print "Output: "

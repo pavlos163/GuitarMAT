@@ -7,7 +7,9 @@ import music21
 from music21 import *
 from librosa.core import hz_to_note, frames_to_time
 from onset import get_onset_frames
-from scipy.signal import butter, sosfilt
+from madmom.audio.chroma import DeepChromaProcessor
+from madmom.features.chords import DeepChromaChordRecognitionProcessor, CNNChordFeatureProcessor, CRFChordRecognitionProcessor
+from scipy.signal import butter, sosfilt, resample
 from frequency_estimator import freq_from_autocorr, freq_from_hps
 
 def transcribe(filename):
@@ -16,8 +18,22 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  # Finds all chords BUT also several false positives in monophonic samples.
+  # dcp = DeepChromaProcessor()
+  # decode = DeepChromaChordRecognitionProcessor()
+  # chroma = dcp(filename)
+  # print(decode(chroma))
+
+  # Very similar results with the CNN:
+  # featproc = CNNChordFeatureProcessor()
+  # decode = CRFChordRecognitionProcessor()
+  # feats = featproc(filename)
+  # print(decode(feats))
+
   # Get onset times.
   onset_frames = get_onset_frames(filename, sr)
+
+  print frames_to_time(onset_frames, sr)
 
   # Filter the signal.
   filtered_y = bandpass_filter(y, sr, 80., 4000.)
@@ -25,8 +41,8 @@ def transcribe(filename):
   # D = librosa.stft(filtered_y)
 
   # Detect pitch with different methods:
-  # stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
-  # print stft_pitches
+  stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'min_stft')
+  print hz_to_note(stft_pitches)
 
   # autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
   # print autocorr_pitches
@@ -34,14 +50,15 @@ def transcribe(filename):
   hps_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
   # print hps_pitches
 
-  pitches = hps_pitches
+  pitches = remove_values_from_list(hps_pitches, 0.)
+  # pitches = stft_pitches
 
-  # print pitches
+  # print hz_to_note([x - 10 for x in pitches])
 
-  # This -5 is a bit arbitrary.
+  # This -10 is a bit arbitrary.
   notes = []
   for pitch in pitches:
-    notes.append(hz_to_note(pitch - 10))
+    notes.append(hz_to_note(pitch + 10))
 
   # Convert to Music21 stream and export to MusicXML file.
   note_stream = convert_to_notes(notes)
@@ -64,20 +81,20 @@ def convert_to_notes(pitches):
   return notes
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=0, fmin=80, fmax=4000):
+def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fmax=4000):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
     sr=sr, fmin=fmin, fmax=fmax)
 
   if method == 'stft':
-      for i in range(0, len(onset_frames)):
-        onset = onset_frames[i] + onset_offset
-        index = magnitudes[:, onset].argmax()
-        pitch = pitches[index, onset]
-        # duration = detect_duration(magnitudes, index, onset)
-        if (pitch != 0):
-          result_pitches.append(pitch)
+    for i in range(0, len(onset_frames)):
+      onset = onset_frames[i] + stft_offset
+      index = magnitudes[:, onset].argmax()
+      pitch = pitches[index, onset]
+      # duration = detect_duration(magnitudes, index, onset)
+      if (pitch != 0):
+        result_pitches.append(pitch)
 
   elif method == 'autocorr':
     slices = segment_signal(y, sr, onset_frames)
@@ -90,19 +107,30 @@ def detect_pitch(y, sr, onset_frames, method='stft', onset_offset=0, fmin=80, fm
     for segment in slices:
       pitch = freq_from_hps(segment, sr)
       result_pitches.append(pitch)
+
+  elif method == 'min_stft':
+    # Getting the first N peaks. Choose the minimum one in terms of frequency.
+    candidates = get_peaks(pitches, magnitudes, onset_frames)
+    for c in candidates:
+      pitch = min(c)
+      result_pitches.append(pitch)
+
   return result_pitches
 
 # For each note played, get the n strongest peaks in the frequency spectrum.
-def get_peaks(pitches, magnitudes, onset_frames, n=5):
+def get_peaks(pitches, magnitudes, onset_frames, n=3, offset=10):
     candidate_list = []
 
     for i in range(0, len(onset_frames)):
       candidates = []
-      onset = onset_frames[i] + 1
+      onset = onset_frames[i] + offset
       indices = np.argpartition(magnitudes[:, onset], 0-n)[0-n:]
 
       for j in indices:
+        # print "{} at frame {}: {}".format(pitches[j, onset], onset, magnitudes[j, onset])
         candidates.append(pitches[j, onset])
+
+      candidates = remove_values_from_list(candidates, 0)
 
       candidate_list.append(candidates)
 

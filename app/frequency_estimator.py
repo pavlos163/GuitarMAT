@@ -117,7 +117,12 @@ def freq_from_hps(signal, fs):
     i_interp = parabolic(hps, i_peak)[0]
 
     # Convert to equivalent frequency
-    return fs * i_interp / N  # Hz
+
+    pitch = fs * i_interp / N
+    if pitch < 75 or pitch > 1600:
+        return 0
+
+    return pitch  # Hz
 
 
 if __name__ == '__main__':

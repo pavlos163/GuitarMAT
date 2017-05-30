@@ -4,3 +4,5 @@ guitartab/static/audio
 *.pyc
 *.mp3
 *.mxl
+*.png
+*.wav
