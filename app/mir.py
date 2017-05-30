@@ -7,7 +7,7 @@ import music21
 from music21 import *
 from librosa.core import hz_to_note, frames_to_time
 from onset import get_onset_frames
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, sosfilt
 from frequency_estimator import freq_from_autocorr, freq_from_hps
 
 def transcribe(filename):
@@ -20,26 +20,28 @@ def transcribe(filename):
   onset_frames = get_onset_frames(filename, sr)
 
   # Filter the signal.
-  # filtered_y = bandpass_filter(y, sr, 80., 4000.)
-  filtered_y = y
+  filtered_y = bandpass_filter(y, sr, 80., 4000.)
 
   # D = librosa.stft(filtered_y)
 
   # Detect pitch with different methods:
-  stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'stft')
-  print stft_pitches
+  # stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
+  # print stft_pitches
 
-  autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
-  print autocorr_pitches
+  # autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
+  # print autocorr_pitches
 
   hps_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
-  print hps_pitches
+  # print hps_pitches
 
   pitches = hps_pitches
 
+  # print pitches
+
+  # This -5 is a bit arbitrary.
   notes = []
   for pitch in pitches:
-    notes.append(hz_to_note(pitch))
+    notes.append(hz_to_note(pitch - 10))
 
   # Convert to Music21 stream and export to MusicXML file.
   note_stream = convert_to_notes(notes)
@@ -109,13 +111,14 @@ def get_peaks(pitches, magnitudes, onset_frames, n=5):
 def bandpass_filter(y, sr, lowcut, highcut):
   # Setup parameters.
   nyquist_rate = sr / 2.
-  filter_order = 1001
+  filter_order = 3
   normalized_low = lowcut / nyquist_rate
   normalized_high = highcut / nyquist_rate
 
-  b, a = butter(filter_order, [normalized_low, normalized_high], btype='bandpass')
+  sos = butter(filter_order, [normalized_low, normalized_high],
+    btype='bandpass', output='sos')
   
-  y = lfilter(b, a, y)
+  y = sosfilt(sos, y)
   return y
 
 def segment_signal(y, sr, onset_frames):
@@ -131,7 +134,7 @@ def segment_signal(y, sr, onset_frames):
   
   # TODO: Choose appropriate offsets.
   offset_start = int(librosa.time_to_samples(0.01, sr))
-  offset_end = int(librosa.time_to_samples(0.1, sr))
+  offset_end = int(librosa.time_to_samples(0.2, sr))
 
   slices = np.array([y[i : i + offset_end] for i
     in librosa.frames_to_samples(onset_frames)])
