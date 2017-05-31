@@ -1,5 +1,6 @@
 import librosa
 import numpy as np
+from librosa.core import frames_to_time
 from frequency_estimator import freq_from_hps, freq_from_autocorr
 
 # Checking the pitch some frames the onset time increased precision.
@@ -49,7 +50,8 @@ def get_peaks(pitches, magnitudes, onset_frames, n=3, offset=10):
     for i in range(0, len(onset_frames)):
       candidates = []
       onset = onset_frames[i] + offset
-      indices = np.argpartition(magnitudes[:, onset], 0-n)[0-n:]
+      blabla = np.argpartition(magnitudes[:, onset], 0-n)
+      indices = blabla[0-n:]
 
       for j in indices:
         # print "{} at frame {}: {}".format(pitches[j, onset], onset, magnitudes[j, onset])

@@ -32,6 +32,8 @@ def get_onset_frames(filename, sr=44100):
   # sodf = madmom.CNNOnsetProcessor(filterbank=LogarithmicFilterbank, 
   #   log=np.log10, norm=True)(filename)
 
+  print proc(sodf)
+
   onset_frames  = time_to_frames(proc(sodf), sr)
 
   return onset_frames

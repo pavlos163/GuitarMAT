@@ -1,5 +1,5 @@
 import os
-import mir
+from transcription import transcribe
 from flask import Flask
 from flask import render_template, request, redirect, url_for, flash, send_from_directory
 from flask_bootstrap import Bootstrap
@@ -50,7 +50,7 @@ def handle_file(file):
   filename = secure_filename(file.filename)
   filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(filepath)
-  pitches = mir.transcribe(filepath)
+  pitches = transcribe(filepath)
   os.remove(filepath)
   return pitches
 
