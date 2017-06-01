@@ -37,9 +37,9 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
   elif method == 'min_stft':
     # Getting the first N peaks. Choose the minimum one in terms of frequency.
     candidates = get_peaks(pitches, magnitudes, onset_frames)
-    print candidates
+    # print candidates
     for c in candidates:
-      chord = is_chord(c)
+      # chord = is_chord(c)
       pitch = min(c)
       result_pitches.append(pitch)
 
@@ -92,7 +92,7 @@ def remove_values_from_list(l, val):
 
 def is_chord(candidate):
   candidate.sort()
-  print candidate
+  # print candidate
 
   if len(candidate) == 1:
     return False

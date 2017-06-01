@@ -7,14 +7,6 @@ import difflib
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
 
-# Wrong results in onsets:
-# [['C4'], ['C#4'], ['D4'], ['D#4'], ['E4']]
-# [['A2'], ['A#2'], ['B2']]
-# [['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
-# [['C5'], ['C#5']]
-# [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]
-# Giorgos recordings: 6 strings 100%
-
 def eval():
   scores = []
 
@@ -61,6 +53,45 @@ def eval():
     [['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]))
   scores.append(get_score('Guitar.ff.sulG.C5Db5.mp3', 
     [['C5'], ['C#5']]))
+  scores.append(get_score('1stSTRING.wav', 
+    [['E4'], ['F4'], ['F#4'], ['G4'], ['G#4'], 
+    ['A4'], ['A#4'], ['B4'], ['C5'], ['C#5'],
+    ['D5'], ['D#5'], ['E5'], ['F5'], ['F#5'],
+    ['G5'], ['G#5'], ['A5'], ['A#5'], ['B5'],
+    ['C6'], ['C#6'], ['E4']]))
+  scores.append(get_score('2ndSTRING.wav', 
+    [['B3'], ['C4'], ['C#4'], ['D4'], ['D#4'], 
+    ['E4'], ['F4'], ['F#4'], ['G4'], ['G#4'],
+    ['A4'], ['A#4'], ['B4'], ['C5'], ['C#5'],
+    ['D5'], ['D#5'], ['E5'], ['F5'], ['F#5'],
+    ['G5'], ['G#5'], ['B3']]))
+  scores.append(get_score('3rdSTRING.wav',
+    [['G3'], ['G#3'], ['A3'], ['A#3'], ['B3'], 
+    ['C4'], ['C#4'], ['D4'], ['D#4'], ['E4'],
+    ['F4'], ['F#4'], ['G4'], ['G#4'], ['A4'],
+    ['A#4'], ['B4'], ['C5'], ['C#5'], ['D5'],
+    ['D#5'], ['E5']]))
+  scores.append(get_score('4thSTRING.wav',
+    [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], 
+    ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3'],
+    ['C4'], ['C#4'], ['D4'], ['D#4'], ['E4'],
+    ['F4'], ['F#4'], ['G4'], ['G#4'], ['A4'],
+    ['A#4'], ['B4'], ['D3']]))
+  scores.append(get_score('5thSTRING.wav',
+    [['A2'], ['A#2'], ['B2'], ['C3'], ['C#3'],
+    ['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'],
+    ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3'],
+    ['C4'], ['C#4'], ['D4'], ['D#4'], ['E4'],
+    ['F4'], ['F#4'], ['A2']]))
+  scores.append(get_score('6thSTRING.wav',
+    [['E2'], ['F2'], ['F#2'], ['G2'], ['G#2'], 
+    ['A2'], ['A#2'], ['B2'], ['C3'], ['C#3'],
+    ['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'],
+    ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3'],
+    ['C4'], ['C#4'], ['E2']]))
+  # scores.append(get_score('cmajor.wav',
+  #   [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], 
+  #   ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]))
 
   print "Average score:"
   print sum(scores) / float(len(scores))

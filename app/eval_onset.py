@@ -34,8 +34,11 @@ def eval():
   scores.append(get_score('5thSTRING.wav', 24))
   scores.append(get_score('6thSTRING.wav', 23))
   scores.append(get_score('3dsCscale.wav', 15))
-  scores.append(get_score('cmajor.wav', 29))
+  scores.append(get_score('cmajor.wav', 30))
   scores.append(get_score('echromatic.wav', 57))
+  scores.append(get_score('softkitty.mp3', 22))
+  scores.append(get_score('unknown.mp3', 53))
+  scores.append(get_score('unknown2.mp3', 39))
 
   print "Average error:"
   print sum(scores) / float(len(scores))
@@ -49,8 +52,6 @@ def get_score(filename, correct):
     print "Correct was {} but found {}".format(correct, result)
     print "Error: {}".format(error)
   return error
-
-# TODO: eval_onset
 
 if __name__ == "__main__":
   eval()

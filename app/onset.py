@@ -1,16 +1,21 @@
 import librosa
 import numpy as np
-import madmom.features.onsets as onsets
+import madmom.audio.signal as ms
+import madmom.features.onsets as mo
 from librosa.core import hz_to_note, frames_to_time, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
 def get_onset_frames(filename, sr=44100):
-  
+
+  sig = ms.Signal(filename, sample_rate=sr, num_channels=1,
+    norm=True)
+
   # BEST! Avg. error: 0.009
-  proc = onsets.OnsetPeakPickingProcessor(threshold=17, pre_max=0.1, 
-  post_max=0.1, pre_avg=0.2, post_avg=0.2, smooth=0.1)
-  sodf = onsets.SpectralOnsetProcessor(onset_method='superflux',
-    filterbank=LogarithmicFilterbank, num_bands=24, log=np.log10, norm=True)(filename)
+  sodf = mo.SpectralOnsetProcessor(onset_method='superflux',
+    filterbank=LogarithmicFilterbank, num_bands=30, log=np.log10, norm=True)(sig)
+
+  onset_frames = mo.peak_picking(sodf, threshold=20, pre_max=15, post_max=15,
+    pre_avg=20, post_avg=20, smooth=15)
 
   # Onset detection in hard songs will require more bands?
   # proc = madmom.OnsetPeakPickingProcessor(threshold=17)
@@ -32,11 +37,11 @@ def get_onset_frames(filename, sr=44100):
   # sodf = madmom.CNNOnsetProcessor(filterbank=LogarithmicFilterbank, 
   #   log=np.log10, norm=True)(filename)
 
-  print proc(sodf)
+  return frames_to_librosa_frames(onset_frames, sr)
 
-  onset_frames  = time_to_frames(proc(sodf), sr)
-
-  return onset_frames
+def frames_to_librosa_frames(onset_frames, sr):
+  onset_times = [float(x)/100. for x in onset_frames]
+  return time_to_frames(onset_times, sr)
 
 # This is not used anymore, as superflux proved to be more accurate.
 def detect_onset_frames(y, sr, pitches, magnitudes):

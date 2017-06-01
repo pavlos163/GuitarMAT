@@ -102,7 +102,6 @@ def other_autocorr(signal, fs):
     # Find the first peak on the left
     i_peak = peakutils.indexes(corr, thres=0.8, min_dist=5)[0]
     i_interp = parabolic(corr, i_peak)[0]
-    print fs / i_interp
     return fs / i_interp
 
 def freq_from_hps(signal, fs):
