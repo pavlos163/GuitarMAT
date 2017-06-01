@@ -9,7 +9,8 @@ from numpy import argmax, mean, diff, log, copy, arange
 from matplotlib.mlab import find
 from scipy.signal import fftconvolve, kaiser, decimate
 from time import time
-
+import matplotlib.pyplot as plt
+import peakutils
 
 def freq_from_crossings(signal, fs):
     """Estimate frequency by counting zero crossings
@@ -77,7 +78,7 @@ def freq_from_autocorr(signal, fs):
     # reversed in time), and throw away the negative lags
     signal -= mean(signal)  # Remove DC offset=
     corr = fftconvolve(signal, signal[::-1], mode='full')
-    corr = corr[int(len(corr)/2):]
+    corr = corr[len(corr)//2:]
 
     # Find the first low point
     d = diff(corr)
@@ -91,6 +92,18 @@ def freq_from_autocorr(signal, fs):
 
     return fs / i_interp
 
+def other_autocorr(signal, fs):
+    # Calculate autocorrelation (same thing as convolution, but with one input
+    # reversed in time), and throw away the negative lags
+    signal -= mean(signal)  # Remove DC offset
+    corr = fftconvolve(signal, signal[::-1], mode='full')
+    corr = corr[len(corr)//2:]
+
+    # Find the first peak on the left
+    i_peak = peakutils.indexes(corr, thres=0.8, min_dist=5)[0]
+    i_interp = parabolic(corr, i_peak)[0]
+    print fs / i_interp
+    return fs / i_interp
 
 def freq_from_hps(signal, fs):
     """Estimate frequency using harmonic product spectrum

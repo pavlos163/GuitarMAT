@@ -1,15 +1,15 @@
 import librosa
 import numpy as np
-import madmom.features.onsets as madmom
+import madmom.features.onsets as onsets
 from librosa.core import hz_to_note, frames_to_time, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
 def get_onset_frames(filename, sr=44100):
   
   # BEST! Avg. error: 0.009
-  proc = madmom.OnsetPeakPickingProcessor(threshold=17, pre_max=0.1, 
+  proc = onsets.OnsetPeakPickingProcessor(threshold=17, pre_max=0.1, 
   post_max=0.1, pre_avg=0.2, post_avg=0.2, smooth=0.1)
-  sodf = madmom.SpectralOnsetProcessor(onset_method='superflux',
+  sodf = onsets.SpectralOnsetProcessor(onset_method='superflux',
     filterbank=LogarithmicFilterbank, num_bands=24, log=np.log10, norm=True)(filename)
 
   # Onset detection in hard songs will require more bands?
