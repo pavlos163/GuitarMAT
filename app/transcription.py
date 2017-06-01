@@ -28,7 +28,10 @@ def transcribe(filename):
   hps_pitches = detect_pitch(filtered_y, sr, onset_frames, 'hps')
   autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
 
-  pitches = stft_pitches
+  # Autocorr is good for low pitches: avg score: 0.7
+  # Other_autocorr was best (windowed).
+  # STFT good in general: avg score: 0.93
+  pitches = autocorr_pitches
 
   notes = pitches_to_notes(pitches)
 

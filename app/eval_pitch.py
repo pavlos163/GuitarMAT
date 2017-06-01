@@ -1,8 +1,8 @@
 import app
-import mir
 import os
 import itertools
 import difflib
+from transcription import transcribe
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -98,7 +98,7 @@ def eval():
 
 def get_score(filename, correct):
   print filename
-  result = mir.transcribe(AUDIO_FOLDER + filename)
+  result = transcribe(AUDIO_FOLDER + filename)
   s = difflib.SequenceMatcher(None, flatten(result), flatten(correct))
   print "Output: "
   print result
@@ -111,8 +111,6 @@ def get_score(filename, correct):
 
 def flatten(l):
   return list(itertools.chain.from_iterable(l))
-
-# TODO: eval_onset
 
 if __name__ == "__main__":
   eval()

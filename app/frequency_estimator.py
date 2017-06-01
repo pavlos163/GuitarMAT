@@ -55,6 +55,7 @@ def freq_from_fft(signal, fs):
 
     # Compute Fourier transform of windowed signal
     windowed = signal * kaiser(N, 100)
+
     f = rfft(windowed)
     # Find the peak and interpolate to get a more accurate peak
     i_peak = argmax(abs(f))  # Just use this value for less-accurate result
@@ -101,7 +102,11 @@ def other_autocorr(signal, fs):
 
     # Find the first peak on the left
     i_peak = peakutils.indexes(corr, thres=0.8, min_dist=5)[0]
+    #print "i_peak:"
+    #print fs / i_peak
     i_interp = parabolic(corr, i_peak)[0]
+    #print "i_interp:"
+    #print fs / i_interp
     return fs / i_interp
 
 def freq_from_hps(signal, fs):
@@ -120,7 +125,7 @@ def freq_from_hps(signal, fs):
 
     # Downsample sum logs of spectra instead of multiplying
     hps = copy(X)
-    for h in arange(2, 5): # TODO: choose a smarter upper limit
+    for h in arange(2, 6): # TODO: choose a smarter upper limit
         dec = decimate(X, h)
         hps[:len(dec)] += dec
 
