@@ -1,8 +1,9 @@
 import librosa
 import numpy as np
+import peakutils
 from librosa.core import frames_to_time
-from frequency_estimator import freq_from_hps, freq_from_autocorr, other_autocorr
-from scipy.signal import kaiser
+from frequency_estimator import freq_from_hps
+from scipy.signal import kaiser, fftconvolve
 
 # Checking the pitch some frames the onset time increased precision.
 def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fmax=4000):
@@ -23,17 +24,8 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
   elif method == 'autocorr':
     slices = segment_signal(y, sr, onset_frames)
     for segment in slices:
-      pitch = other_autocorr(segment, sr)
+      pitch = freq_from_autocorr(segment, sr)
       result_pitches.append(pitch)
-
-  elif method == 'hps':
-    slices = segment_signal(y, sr, onset_frames)
-    for segment in slices:
-      pitch = freq_from_hps(segment, sr)
-      result_pitches.append(pitch)
-      # Fixing estimation error:
-      pitches = remove_values_from_list(result_pitches, 0.)
-      result_pitches = [pitch + 10 for pitch in pitches]
 
   elif method == 'min_stft':
     # Getting the first N peaks. Choose the minimum one in terms of frequency.
@@ -120,3 +112,21 @@ def is_chord(candidate):
       print "MAX WITH MIN:"
       print inharmonicity_factor
 
+def freq_from_autocorr(y, sr):
+    y -= np.mean(y)
+    corr = fftconvolve(y, y[::-1], mode='full')
+    corr = corr[len(corr)//2:]
+
+    thres = 1.2
+
+    i_peak = peakutils.indexes(corr, thres=thres, min_dist=5)
+
+    while i_peak.size == 0:
+        thres -= 0.02
+        i_peak = peakutils.indexes(corr, thres=thres, min_dist=5)
+
+    i_peak = i_peak[0]
+
+    # Is interpolation needed?
+
+    return sr / i_peak
