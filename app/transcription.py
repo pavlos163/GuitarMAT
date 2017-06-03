@@ -32,12 +32,13 @@ def transcribe(filename):
 
   # Detect pitch with different methods:
   # stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'min_stft')
-  autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
+  # autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
+  yin_pitches = detect_pitch(filtered_y, sr, onset_frames, 'yin')
 
   # Autocorr is good for low pitches: avg score: 0.7
   # Other_autocorr was best (windowed).
   # STFT good in general: avg score: 0.93
-  pitches = autocorr_pitches
+  pitches = yin_pitches
 
   notes = pitches_to_notes(pitches)
 

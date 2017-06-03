@@ -1,8 +1,9 @@
 import librosa
 import numpy as np
 import peakutils
+import essentia
+import essentia.standard as ess
 from librosa.core import frames_to_time
-from frequency_estimator import freq_from_hps
 from scipy.signal import kaiser, fftconvolve
 
 # Checking the pitch some frames the onset time increased precision.
@@ -35,6 +36,13 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
       # chord = is_chord(c)
       pitch = min(c)
       result_pitches.append(pitch)
+
+  elif method == 'yin':
+    yin = ess.PitchYin()
+    slices = segment_signal(y, sr, onset_frames)
+    for slice in slices:
+      pitch = yin(essentia.array(slice))
+      result_pitches.append(pitch[0])
 
   return result_pitches
 
