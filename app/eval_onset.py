@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../')
-
 import app
 import onset
 import librosa
@@ -8,6 +5,8 @@ import os
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
+
+# TODO: This should be done with recall, precision and f-measure.
 
 def eval():
   scores = []

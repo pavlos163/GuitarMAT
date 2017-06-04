@@ -5,6 +5,7 @@ import essentia
 import essentia.standard as ess
 from librosa.core import frames_to_time
 from scipy.signal import kaiser, fftconvolve
+from util import remove_values_from_list
 
 # Checking the pitch some frames the onset time increased precision.
 def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fmax=4000):
@@ -91,9 +92,6 @@ def segment_signal(y, sr, onset_frames, from_minima=False, offset_start=0.05,
     slice *= kaiser(N, 100)
 
   return slices
-
-def remove_values_from_list(l, val):
-  return [value for value in l if value != val]
 
 def is_chord(candidate):
   candidate.sort()

@@ -1,7 +1,7 @@
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
-import plot
+import util
 from music21 import *
 from librosa.core import hz_to_note, time_to_frames, frames_to_time
 from onset import get_onset_frames
@@ -48,8 +48,8 @@ def transcribe(filename):
   note_stream.write("musicxml", "static/piece.mxl")
 
   # plot.plot_waveform(y)
-  plot.plot_spectrogram(librosa.stft(y), sr)
-  plt.close('all')
+  # plot.plot_spectrogram(librosa.stft(y), sr)
+  # plt.close('all')
   
   return notes
 
@@ -83,13 +83,3 @@ def bandpass_filter(y, sr, lowcut, highcut):
   
   y = sosfilt(sos, y)
   return y
-
-def detect_duration(magnitudes, bin, time_frame):
-  # TODO: This is going to get messy if there is a new note played before
-  # the last note has finished.
-  duration = 0
-  while magnitudes[bin, time_frame] > 1:
-    duration += 1
-    time_frame += 1
-
-  return duration

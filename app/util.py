@@ -19,3 +19,6 @@ def plot_spectrogram(stft_output, xlabel='Time', ylabel='Hz', sr=40000, fmin=Non
   plt.colorbar(format='%+2.0f dB')
   plt.tight_layout()
   plt.savefig('static/plots/' + 'spectrogram.png')
+
+def remove_values_from_list(l, val):
+  return [value for value in l if value != val]

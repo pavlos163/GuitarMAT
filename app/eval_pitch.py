@@ -1,11 +1,9 @@
-import sys
-sys.path.append('../')
-
 import app
 import os
 import itertools
 import difflib
 from transcription import transcribe
+from util import remove_values_from_list
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -102,19 +100,20 @@ def eval():
   #   ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]))
 
   print "Average score:"
+  scores = remove_values_from_list(scores, -1)
   print sum(scores) / float(len(scores))
 
 def get_score(filename, correct):
   print filename
   result = transcribe(AUDIO_FOLDER + filename)
   s = difflib.SequenceMatcher(None, flatten(result), flatten(correct))
-  print "Output: "
-  print result
-  print "Correct Output: "
-  print correct
-  print "Score: "
+  if len(result) != len(correct):
+    print "Onset mistake, ignoring."
+    return -1
   score = s.ratio()
-  print score
+  if score != 1.:
+    print "Correct was:\n{} but found:\n{}".format(correct, result)
+  print "Score: {}".format(score)
   return score
 
 def flatten(l):
