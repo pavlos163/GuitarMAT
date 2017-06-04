@@ -1,7 +1,14 @@
+import sys
+import os
+
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if not path in sys.path:
+  sys.path.insert(1, path)
+del path
+
 import app
 import onset
 import librosa
-import os
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -42,18 +49,19 @@ def eval():
   scores.append(get_score('unknown.mp3', 53))
   scores.append(get_score('unknown2.mp3', 39))
 
-  print "Average error:"
-  print sum(scores) / float(len(scores))
+  print "Average score:"
+  print round(sum(scores) / float(len(scores)), 3)
 
 def get_score(filename, correct):
   onset_frames = onset.get_onset_frames(AUDIO_FOLDER + filename)
   result = len(onset_frames)
-  error = abs(float(correct) - float(result)) / correct
+  error = round(abs(float(correct) - float(result)) / correct, 3)
+  score = 1 - error
   if error != 0:
     print "In {}:".format(filename)
     print "Correct was {} but found {}".format(correct, result)
-    print "Error: {}".format(error)
-  return error
+    print "Score: {}".format(score)
+  return score
 
 if __name__ == "__main__":
   eval()
