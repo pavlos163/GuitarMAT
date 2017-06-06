@@ -18,8 +18,8 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  # Get tempo.
   tempo = get_tempo(y)
-  print tempo
 
   # Get onset times.
   onset_frames = get_onset_frames(filename, sr)
@@ -28,7 +28,7 @@ def transcribe(filename):
 
   # print onset_frames
 
-  durations = get_durations(onset_frames)
+  durations = get_durations(onset_frames, tempo)
 
   # print durations
 
@@ -47,7 +47,7 @@ def transcribe(filename):
   notes = pitches_to_notes(pitches)
 
   # Convert to Music21 stream and export to MusicXML file.
-  score = get_score(notes, durations)
+  score = get_score(notes, durations, tempo)
 
   score.write("musicxml", "static/piece.mxl")
 
@@ -63,17 +63,15 @@ def pitches_to_notes(pitches):
     notes.append(hz_to_note(pitch))
   return notes
 
-def get_score(notes, durations):
+def get_score(notes, durations, quarter_length):
   score = stream.Score()
   score.insert(0, clef.TrebleClef())
   # Time Signature
   # Key Signature
-  score.insert(instrument.AcousticGuitar())
-  print score.getInstrument().instrumentName
-  score.insert(0, tempo.MetronomeMark(number=120))
+  score.insert(instrument.Guitar())
+  score.insert(0, tempo.MetronomeMark(number=quarter_length))
   notes = sum(notes, [])
   for i in range(0, len(notes)):
-    print notes[i]
     f = note.Note(notes[i])
     f.duration = duration.Duration(durations[i])
     score.append(f)
@@ -96,4 +94,5 @@ def bandpass_filter(y, sr, lowcut, highcut):
 def get_tempo(y):
   tempo_estimator = ess.PercivalBpmEstimator()
   bpm = tempo_estimator(y)
+  # print "Not rounded: {}".format(bpm)
   return util.round_to_base(bpm, 5)
