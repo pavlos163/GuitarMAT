@@ -45,6 +45,22 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
       pitch = yin(essentia.array(slice))
       result_pitches.append(pitch[0])
 
+  elif method == 'klapuri':
+    klap = ess.MultiPitchKlapuri()
+    pitches = klap(essentia.array(y))
+    print "Length of pitches:"
+    print len(pitches)
+    print "Whole list of pitches:"
+    print pitches
+    print "Onset frames:"
+    print onset_frames
+    for o in onset_frames:
+      print "Onset at:"
+      print o
+      pitches_at_onset = pitches[o]
+      result_pitches.append(pitches_at_onset[0])
+      print pitches_at_onset
+      
   return result_pitches
 
 # For each note played, get the n strongest peaks in the frequency spectrum.

@@ -22,3 +22,6 @@ def plot_spectrogram(stft_output, xlabel='Time', ylabel='Hz', sr=40000, fmin=Non
 
 def remove_values_from_list(l, val):
   return [value for value in l if value != val]
+
+def round_to_base(val, base):
+  return int(base * round(float(val)/base))

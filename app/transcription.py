@@ -2,6 +2,8 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import util
+import essentia
+import essentia.standard as ess
 from music21 import *
 from librosa.core import hz_to_note, time_to_frames, frames_to_time
 from onset import get_onset_frames
@@ -16,8 +18,13 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  tempo = get_tempo(y)
+  print tempo
+
   # Get onset times.
   onset_frames = get_onset_frames(filename, sr)
+
+  # print frames_to_time(onset_frames, sr)
 
   # print onset_frames
 
@@ -29,26 +36,23 @@ def transcribe(filename):
   filtered_y = bandpass_filter(y, sr, 80., 4000.)
 
   # chords = get_chords(filename, filtered_y, sr)
+  # print chords
 
   # Detect pitch with different methods:
-  # stft_pitches = detect_pitch(filtered_y, sr, onset_frames, 'min_stft')
-  # autocorr_pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
-  yin_pitches = detect_pitch(filtered_y, sr, onset_frames, 'yin')
-
-  # Autocorr is good for low pitches: avg score: 0.7
-  # Other_autocorr was best (windowed).
-  # STFT good in general: avg score: 0.93
-  pitches = yin_pitches
+  # pitches = detect_pitch(filtered_y, sr, onset_frames, 'min_stft')
+  # pitches = detect_pitch(filtered_y, sr, onset_frames, 'autocorr')
+  pitches = detect_pitch(filtered_y, sr, onset_frames, 'yin')
+  # pitches = detect_pitch(filtered_y, sr, onset_frames, 'klapuri')
 
   notes = pitches_to_notes(pitches)
 
   # Convert to Music21 stream and export to MusicXML file.
-  note_stream = notes_to_stream(notes, durations)
+  score = get_score(notes, durations)
 
-  note_stream.write("musicxml", "static/piece.mxl")
+  score.write("musicxml", "static/piece.mxl")
 
   # plot.plot_waveform(y)
-  # plot.plot_spectrogram(librosa.stft(y), sr)
+  # util.plot_spectrogram(librosa.stft(y), sr)
   # plt.close('all')
   
   return notes
@@ -59,17 +63,22 @@ def pitches_to_notes(pitches):
     notes.append(hz_to_note(pitch))
   return notes
 
-def notes_to_stream(notes, durations):
-  note_stream = stream.Stream()
-  note_stream.insert(0, clef.TrebleClef())
-  note_stream.insert(0, tempo.MetronomeMark(number=120))
+def get_score(notes, durations):
+  score = stream.Score()
+  score.insert(0, clef.TrebleClef())
+  # Time Signature
+  # Key Signature
+  score.insert(instrument.AcousticGuitar())
+  print score.getInstrument().instrumentName
+  score.insert(0, tempo.MetronomeMark(number=120))
   notes = sum(notes, [])
   for i in range(0, len(notes)):
+    print notes[i]
     f = note.Note(notes[i])
     f.duration = duration.Duration(durations[i])
-    note_stream.append(f)
+    score.append(f)
 
-  return note_stream
+  return score
 
 def bandpass_filter(y, sr, lowcut, highcut):
   # Setup parameters.
@@ -83,3 +92,8 @@ def bandpass_filter(y, sr, lowcut, highcut):
   
   y = sosfilt(sos, y)
   return y
+
+def get_tempo(y):
+  tempo_estimator = ess.PercivalBpmEstimator()
+  bpm = tempo_estimator(y)
+  return util.round_to_base(bpm, 5)

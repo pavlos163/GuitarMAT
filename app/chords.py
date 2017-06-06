@@ -1,9 +1,11 @@
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
+import essentia
+import essentia.standard as ess
 from madmom.audio.chroma import DeepChromaProcessor
 from madmom.features.chords import DeepChromaChordRecognitionProcessor, CNNChordFeatureProcessor, CRFChordRecognitionProcessor
-from librosa.core import time_to_frames, frames_to_time
+from librosa.core import time_to_frames, frames_to_time, frames_to_samples
 
 def get_chords(filename, y, sr):
   dcp = DeepChromaProcessor()
@@ -35,14 +37,37 @@ def get_chords(filename, y, sr):
 
   for c in chord_tuples:
     frame_start = c[0]
-    frame_end = c[1]
+    #frame_start = (c[0] + c[1])//2
+    frame_end = frame_start + 5
 
-    print D[:, frame_start:frame_end]
+    print frame_start
+    print frame_end
 
-    print "VAR:"
-    print np.var(D[:, frame_start:frame_end])
-    print "MEAN:"
-    print np.mean(chroma[:, frame_start:frame_end])
+    sample_start = int(frames_to_samples(frame_start))
+    sample_end = int(frames_to_samples(frame_end))
+
+    print sample_start
+    print sample_end
+
+    essspectrum = ess.Spectrum()
+    spectrum = essspectrum(essentia.array(y[sample_start:sample_end]))
+
+    print "Salience:"
+    sal = ess.PitchSalience()
+    print sal(spectrum)
+
+    print "Spectral Complexity:"
+    scompl = ess.SpectralComplexity(magnitudeThreshold=5)
+    print scompl(spectrum)
+
+    #print "Spectral Contrast:"
+    #sc = ess.SpectralContrast()
+    #print sc(spectrum)
+
+    # print "VAR:"
+    # print np.var(D[:, frame_start:frame_end])
+    # print "MEAN:"
+    # print np.mean(chroma[:, frame_start:frame_end])
 
     # print chroma[:, frame_start:frame_end]
     #print "VAR:"
