@@ -20,9 +20,10 @@ def get_durations(onset_frames, tempo):
   
   min_avg = sum / float(n)
 
-  # print "Min_Avg: {}".format(frames_to_time(min_avg, 44100))
+  print "Min_Avg: {}".format(frames_to_time(min_avg, 44100))
 
   rel_durations_min_avg = normalize(abs_durations, min_avg)
+  print "rel_durations_min_avg: {}".format(rel_durations_min_avg)
 
   quarter = 60 / float(tempo)
   # print "Quarter: {}".format(quarter)
@@ -31,6 +32,9 @@ def get_durations(onset_frames, tempo):
   # print "Ratio: {}".format(ratio)
 
   durations = [dur / float(ratio) for dur in rel_durations_min_avg]
+  print "Durations: {}".format(durations)
+
+  durations = apply_thresh(durations)
 
   # print durations
 
@@ -48,3 +52,6 @@ def get_diff_succesive_onsets(onset_frames):
 def normalize(durations, refnote):
   durations = [round(float(x) / float(refnote)) for x in durations]
   return durations
+
+def apply_thresh(durations, thresh=4.):
+  return [min(dur, 4.) for dur in durations]

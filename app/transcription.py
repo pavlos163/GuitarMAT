@@ -18,10 +18,13 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
-  # Get tempo.
+  # Get tempo
   tempo = get_tempo(y)
 
-  # Get onset times.
+  # Get key
+  key = get_key(y)
+
+  # Get onset times
   onset_frames = get_onset_frames(filename, sr)
 
   # print frames_to_time(onset_frames, sr)
@@ -65,7 +68,7 @@ def pitches_to_notes(pitches):
 
 def get_score(notes, durations, quarter_length):
   score = stream.Score()
-  score.insert(0, clef.TrebleClef())
+  score.insert(0, clef.Treble8vbClef())
   # Time Signature
   # Key Signature
   score.insert(instrument.Guitar())
@@ -95,4 +98,15 @@ def get_tempo(y):
   tempo_estimator = ess.PercivalBpmEstimator()
   bpm = tempo_estimator(y)
   # print "Not rounded: {}".format(bpm)
+  bpm = util.round_to_base(bpm, 5)
+  if bpm < 60:
+    bpm = bpm * 2
+  elif bpm > 220:
+    bpm = bpm / 2
   return util.round_to_base(bpm, 5)
+
+def get_key(y):
+  key_extractor = ess.KeyExtractor()
+  key = key_extractor(essentia.array(y))
+  print key
+  return key
