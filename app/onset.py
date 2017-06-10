@@ -5,9 +5,9 @@ import madmom.features.onsets as mo
 from librosa.core import hz_to_note, frames_to_time, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
-def get_onset_frames(filename, sr=44100):
+def get_onset_frames(data, sr):
 
-  sig = ms.Signal(filename, sample_rate=sr, num_channels=1,
+  sig = ms.Signal(data, sample_rate=sr, num_channels=1,
     norm=True)
 
   # BEST! Avg. error: 0.009

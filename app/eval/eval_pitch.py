@@ -7,10 +7,15 @@ if not path in sys.path:
 del path
 
 import app
-import itertools
 import difflib
-from transcription import transcribe
-from util import remove_values_from_list
+import librosa
+from onset import get_onset_frames
+from pitch import get_pitches
+from filter import bandpass_filter, highpass_filter
+from util import *
+import essentia.standard as ess
+import essentia
+from scipy.signal import medfilt
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -105,6 +110,13 @@ def eval():
   # scores.append(get_score('cmajor.wav',
   #   [['D3'], ['D#3'], ['E3'], ['F3'], ['F#3'], 
   #   ['G3'], ['G#3'], ['A3'], ['A#3'], ['B3']]))
+  scores.append(get_score('frerejacques.mp3',
+    [['C3'], ['D3'], ['E3'], ['C3'], ['C3'], ['D3'],
+    ['E3'], ['C3'], ['E3'], ['F3'], ['G3'], ['E3'],
+    ['F3'], ['G3'], ['G3'], ['A3'], ['G3'], ['F3'],
+    ['E3'], ['C3'], ['G3'], ['A3'], ['G3'], ['F3'],
+    ['E3'], ['C3'], ['C3'], ['G2'], ['C3'], ['C3'],
+    ['G2'], ['C3']]))
 
   print "Average score:"
   scores = remove_values_from_list(scores, -1)
@@ -112,7 +124,12 @@ def eval():
 
 def get_score(filename, correct):
   print filename
-  result = transcribe(AUDIO_FOLDER + filename)
+  y, sr = librosa.load(AUDIO_FOLDER + filename, sr=44100)
+  
+  onset_frames = get_onset_frames(y, sr)
+
+  result = pitches_to_notes(get_pitches(y, sr, onset_frames, method='yin'))
+
   s = difflib.SequenceMatcher(None, flatten(result), flatten(correct))
   if len(result) != len(correct):
     print "Onset mistake, ignoring."
@@ -122,9 +139,6 @@ def get_score(filename, correct):
     print "Correct was:\n{} but found:\n{}".format(correct, result)
   print "Score: {}".format(score)
   return score
-
-def flatten(l):
-  return list(itertools.chain.from_iterable(l))
 
 if __name__ == "__main__":
   eval()

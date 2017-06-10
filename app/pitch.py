@@ -8,7 +8,7 @@ from scipy.signal import kaiser, fftconvolve
 from util import remove_values_from_list
 
 # Checking the pitch some frames the onset time increased precision.
-def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fmax=4000):
+def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, fmax=4000):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
@@ -31,7 +31,7 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
 
   elif method == 'min_stft':
     # Getting the first N peaks. Choose the minimum one in terms of frequency.
-    candidates = get_peaks(pitches, magnitudes, onset_frames)
+    candidates = get_peaks(pitches, magnitudes, onset_frames, stft_offset)
     # print candidates
     for c in candidates:
       # chord = is_chord(c)
@@ -46,25 +46,35 @@ def detect_pitch(y, sr, onset_frames, method='stft', stft_offset=10, fmin=80, fm
       result_pitches.append(pitch[0])
 
   elif method == 'klapuri':
-    klap = ess.MultiPitchKlapuri()
+    klap = ess.MultiPitchMelodia()
     pitches = klap(essentia.array(y))
+    print "Onset frames:"
+    print onset_frames
     print "Length of pitches:"
     print len(pitches)
     print "Whole list of pitches:"
     print pitches
-    print "Onset frames:"
-    print onset_frames
-    for o in onset_frames:
-      print "Onset at:"
-      print o
-      pitches_at_onset = pitches[o]
+    for i in range(0, len(onset_frames)):
+      onset = onset_frames[i] * 4
+      if (i < len(onset_frames) - 1):
+        next_onset = onset_frames[i+1] * 4
+      else:
+        next_onset = librosa.core.samples_to_frames(len(y) - 1) * 4 - 1
+
+
+      print "Onset at: {}".format(onset)
+      for j in range(onset, next_onset - 10):
+        print "j: {}".format(j)
+        print "len(pitches): {}".format(len(pitches))
+        pitches_at_onset = pitches[j]
+        print "at {}: {}".format(j, pitches_at_onset)
       result_pitches.append(pitches_at_onset[0])
       print pitches_at_onset
-      
+
   return result_pitches
 
 # For each note played, get the n strongest peaks in the frequency spectrum.
-def get_peaks(pitches, magnitudes, onset_frames, n=4, offset=10):
+def get_peaks(pitches, magnitudes, onset_frames, offset, n=4):
     candidate_list = []
 
     for i in range(0, len(onset_frames)):

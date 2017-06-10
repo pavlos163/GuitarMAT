@@ -7,8 +7,10 @@ if not path in sys.path:
 del path
 
 import app
-import onset
 import librosa
+from onset import get_onset_frames
+import essentia
+import essentia.standard as ess
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -53,7 +55,10 @@ def eval():
   print round(sum(scores) / float(len(scores)), 3)
 
 def get_score(filename, correct):
-  onset_frames = onset.get_onset_frames(AUDIO_FOLDER + filename)
+  sr = 44100
+  y, sr = librosa.load(AUDIO_FOLDER + filename, sr=sr)
+
+  onset_frames = get_onset_frames(y, sr)
   result = len(onset_frames)
   error = round(abs(float(correct) - float(result)) / correct, 3)
   score = 1 - error
