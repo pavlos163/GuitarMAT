@@ -30,6 +30,7 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
       result_pitches.append(pitch)
 
   elif method == 'min_stft':
+
     # Getting the first N peaks. Choose the minimum one in terms of frequency.
     candidates = get_peaks(pitches, magnitudes, onset_frames, stft_offset)
     # print candidates
@@ -46,7 +47,7 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
       result_pitches.append(pitch[0])
 
   elif method == 'klapuri':
-    klap = ess.MultiPitchMelodia()
+    klap = ess.MultiPitchMelodia(hopSize=512)
     pitches = klap(essentia.array(y))
     print "Onset frames:"
     print onset_frames
@@ -55,21 +56,24 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
     print "Whole list of pitches:"
     print pitches
     for i in range(0, len(onset_frames)):
-      onset = onset_frames[i] * 4
-      if (i < len(onset_frames) - 1):
-        next_onset = onset_frames[i+1] * 4
-      else:
-        next_onset = librosa.core.samples_to_frames(len(y) - 1) * 4 - 1
+      onset = onset_frames[i]
+      print onset
+      pitches_at_onset = pitches[onset]
+      #if (i < len(onset_frames) - 1):
+      #  next_onset = onset_frames[i+1] * 4
+      #else:
+      #  next_onset = librosa.core.samples_to_frames(len(y) - 1) * 4 - 1
 
 
-      print "Onset at: {}".format(onset)
-      for j in range(onset, next_onset - 10):
-        print "j: {}".format(j)
-        print "len(pitches): {}".format(len(pitches))
-        pitches_at_onset = pitches[j]
-        print "at {}: {}".format(j, pitches_at_onset)
+      #print "Onset at: {}".format(onset)
+      #for j in range(onset, next_onset - 10):
+      #  print "j: {}".format(j)
+      #  print "len(pitches): {}".format(len(pitches))
+      #  pitches_at_onset = pitches[j]
+      #  print "at {}: {}".format(j, pitches_at_onset)
       result_pitches.append(pitches_at_onset[0])
       print pitches_at_onset
+      print librosa.core.hz_to_note(pitches_at_onset)
 
   return result_pitches
 

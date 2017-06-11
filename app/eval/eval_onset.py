@@ -9,8 +9,7 @@ del path
 import app
 import librosa
 from onset import get_onset_frames
-import essentia
-import essentia.standard as ess
+import filter
 
 APP_ROOT = app.APP_ROOT
 AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
@@ -50,6 +49,9 @@ def eval():
   scores.append(get_score('softkitty.mp3', 22))
   scores.append(get_score('unknown.mp3', 53))
   scores.append(get_score('unknown2.mp3', 39))
+  scores.append(get_score('frerejacques.mp3', 32))
+  scores.append(get_score('astatamalakia.mp3', 62))
+  scores.append(get_score('eam.mp3', 65))
 
   print "Average score:"
   print round(sum(scores) / float(len(scores)), 3)
@@ -57,6 +59,8 @@ def eval():
 def get_score(filename, correct):
   sr = 44100
   y, sr = librosa.load(AUDIO_FOLDER + filename, sr=sr)
+
+  y = filter.remove_noise(y)
 
   onset_frames = get_onset_frames(y, sr)
   result = len(onset_frames)

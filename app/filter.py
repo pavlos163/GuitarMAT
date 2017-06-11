@@ -34,7 +34,7 @@ def highpass_filter(y, sr):
 
 def remove_noise(y):
   moving_average = ess.MovingAverage()
-  ma_y = ma(essentia.array(y))
+  ma_y = moving_average(essentia.array(y))
 
   filtered_y = y - ma_y
   return filtered_y

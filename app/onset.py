@@ -10,37 +10,74 @@ def get_onset_frames(data, sr):
   sig = ms.Signal(data, sample_rate=sr, num_channels=1,
     norm=True)
 
-  # BEST! Avg. error: 0.009
-  sodf = mo.SpectralOnsetProcessor(onset_method='superflux',
-    filterbank=LogarithmicFilterbank, num_bands=30, log=np.log10, norm=True)(sig)
+  #######################################
+  # SUPERFLUX:
+  #######################################
+  # Avg. score: 0.975
+  #sodf = mo.SpectralOnsetProcessor(onset_method='superflux',
+  #  filterbank=LogarithmicFilterbank, num_bands=24, fps=200, log=np.log10,
+  #  norm=True)(sig)
+  #onset_frames = mo.peak_picking(sodf, threshold=32, pre_max=4, post_max=10,
+  #  pre_avg=15, post_avg=0, smooth=25)
+  #######################################
 
-  onset_frames = mo.peak_picking(sodf, threshold=20, pre_max=15, post_max=15,
-    pre_avg=20, post_avg=20, smooth=15)
+  #######################################
+  # COMPLEXFLUX:
+  #######################################
+  # Avg. score = 0.968
+  #sodf = mo.SpectralOnsetProcessor(onset_method='complex_flux',
+  #  filterbank=LogarithmicFilterbank, num_bands=24, fps=200, log=np.log10,
+  #  norm=True)(sig)
+  #onset_frames = mo.peak_picking(sodf, threshold=6, pre_max=2, post_max=5,
+  #  pre_avg=8, post_avg=8, smooth=19)
+  #######################################
 
-  # Onset detection in hard songs will require more bands?
-  # proc = madmom.OnsetPeakPickingProcessor(threshold=17)
-  # sodf = madmom.SpectralOnsetProcessor(onset_method='superflux',
-  #   filterbank=LogarithmicFilterbank, num_bands=250, log=np.log10, norm=True)(filename)
+  #######################################
+  # SPECTRAL DIFF:
+  #######################################
+  # Avg. score = 0.98
+  #sodf = mo.SpectralOnsetProcessor(onset_method='spectral_diff',
+  #  filterbank=LogarithmicFilterbank, num_bands=24, fps=200, log=np.log10,
+  #  norm=True)(sig)
+  #onset_frames = mo.peak_picking(sodf, threshold=4.5, pre_max=2, post_max=2,
+  #  pre_avg=8, post_avg=4, smooth=19)
+  #######################################
 
-  # proc = madmom.OnsetPeakPickingProcessor(threshold=8, pre_max=1. / 200., post_max=1./ 200)
-  # sodf = madmom.SpectralOnsetProcessor(onset_method='complex_flux',
-  #   filterbank=LogarithmicFilterbank, num_bands=48, log=np.log10, norm=True)(filename)
+  #######################################
+  # SPECTRAL FLUX:
+  #######################################
+  # Avg.score = 0.981
+  sodf = mo.SpectralOnsetProcessor(onset_method='spectral_flux',
+    filterbank=LogarithmicFilterbank, num_bands=24, fps=200,
+    log=np.log10, norm=True)(sig)
+  onset_frames = mo.peak_picking(sodf, threshold=20, pre_max=2, post_max=2,
+    pre_avg=8, post_avg=4, smooth=20)
+  #######################################
 
-  # proc = madmom.OnsetPeakPickingProcessor(threshold=5, pre_max=1. / 300., post_max=0.5)
-  # sodf = madmom.SpectralOnsetProcessor(onset_method='spectral_diff',
-  #   filterbank=LogarithmicFilterbank, num_bands=100, log=np.log10, norm=True)(filename)
+  #######################################
+  # CNN:
+  #######################################
+  # Avg. error: 0.768
+  #sodf = mo.CNNOnsetProcessor(filterbank=LogarithmicFilterbank,
+  #  num_bands=24, fps=200, log=np.log10, norm=True)(sig)
+  #onset_frames = mo.peak_picking(sodf, threshold=0.909, pre_max=4,
+  #  post_max=10, pre_avg=15, post_avg=0, smooth=20)
+  #######################################
 
-  # Good average error but only for studio-recorded samples.
-  # Average error in general is 0.095 but error for recorded samples is often more than 50%.
-  # proc = madmom.OnsetPeakPickingProcessor(threshold=0.85, pre_max=1. / 200., 
-  # post_max=1. / 200, pre_avg = 0.1, post_avg = 0.1)
-  # sodf = madmom.CNNOnsetProcessor(filterbank=LogarithmicFilterbank, 
-  #   log=np.log10, norm=True)(filename)
+  #######################################
+  # RNN:
+  #######################################
+  # Avg. error: 0.846
+  #sodf = mo.RNNOnsetProcessor(filterbank=LogarithmicFilterbank, num_bands=24,
+  #  fps=200, log=np.log10, norm=True)(sig)
+  #onset_frames = mo.peak_picking(sodf, threshold=0.7, pre_max=4, post_max=10,
+  #  pre_avg=15, post_avg=0, smooth=20)
+  #######################################
 
   return frames_to_librosa_frames(onset_frames, sr)
 
 def frames_to_librosa_frames(onset_frames, sr):
-  onset_times = [float(x)/100. for x in onset_frames]
+  onset_times = [float(x)/200. for x in onset_frames]
   return time_to_frames(onset_times, sr)
 
 # This is not used anymore, as superflux proved to be more accurate.
@@ -48,7 +85,7 @@ def detect_onset_frames(y, sr, pitches, magnitudes):
   onset_frames = librosa.onset.onset_detect(y=y, sr=sr)
   return filter_onset_frames(pitches, magnitudes, onset_frames)
 
-# THIS NEEDS TESTING AND COMMENTS.
+# Deprecated:
 def filter_onset_frames(pitches, magnitudes, onset_frames, ampl_thresh=8):
   print "Before STEP 1:"
   print librosa.frames_to_time(onset_frames, 44100)

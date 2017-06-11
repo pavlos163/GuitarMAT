@@ -9,6 +9,7 @@ from onset import get_onset_frames
 from pitch import get_pitches
 from chords import get_chords
 from duration import get_durations
+from sklearn.decomposition import NMF
 from filter import bandpass_filter, remove_noise
 from util import *
 from scipy.signal import medfilt
@@ -19,18 +20,51 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  #D = librosa.core.stft(y)
+  #n_components = 12
+
+  # model = NMF(init='random')
+  # model.fit(np.abs(D))
+
+  #W, H = librosa.decompose.decompose(np.abs(D), n_components=n_components, sort=True)
+
+  #print W.shape
+  #print H.shape
+
+  #logW = np.log10(W)
+
+  #for n in range(n_components):
+  #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
+  #  plt.plot(logW[:, n])
+  #  plt.ylim(-2, logW.max())
+  #  plt.xlim(0, W.shape[0])
+  #  plt.ylabel('Component {}'.format(n))
+
+  #plt.show()
+
+  #for n in range(n_components):
+  #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
+  #  plt.plot(H[n])
+  #  plt.ylim(0, H.max())
+  #  plt.xlim(0, H.shape[1])
+  #  plt.ylabel('Component {}'.format(n))
+
+  #plt.show()
+
   # Get tempo
   tempo = get_tempo(y)
 
   # Get key
   key = get_key(y)
 
+  y = remove_noise(y)
+
   # Get onset times
-  onset_frames = get_onset_frames(filename, sr)
+  onset_frames = get_onset_frames(y, sr)
 
   # print frames_to_time(onset_frames, sr)
 
-  # print onset_frames
+  print len(onset_frames)
 
   durations = get_durations(onset_frames, tempo)
 

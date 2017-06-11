@@ -128,7 +128,7 @@ def get_score(filename, correct):
   
   onset_frames = get_onset_frames(y, sr)
 
-  result = pitches_to_notes(get_pitches(y, sr, onset_frames, method='yin'))
+  result = pitches_to_notes(get_pitches(y, sr, onset_frames, method='autocorr'))
 
   s = difflib.SequenceMatcher(None, flatten(result), flatten(correct))
   if len(result) != len(correct):
