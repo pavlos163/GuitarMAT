@@ -47,7 +47,7 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
       result_pitches.append(pitch[0])
 
   elif method == 'klapuri':
-    klap = ess.MultiPitchMelodia(hopSize=512)
+    klap = ess.MultiPitchKlapuri(hopSize=128, numberHarmonics=7)
     pitches = klap(essentia.array(y))
     print "Onset frames:"
     print onset_frames
@@ -56,7 +56,7 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
     print "Whole list of pitches:"
     print pitches
     for i in range(0, len(onset_frames)):
-      onset = onset_frames[i]
+      onset = onset_frames[i] * 4
       print onset
       pitches_at_onset = pitches[onset]
       #if (i < len(onset_frames) - 1):
@@ -97,7 +97,7 @@ def get_peaks(pitches, magnitudes, onset_frames, offset, n=4):
     return candidate_list
 
 def segment_signal(y, sr, onset_frames, from_minima=False, offset_start=0.05,
-  offset_end=0.2):
+  offset_end=0.1):
 
   if from_minima:
     # We split the signal into slices that sum up to the whole signal

@@ -20,24 +20,22 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  # NMF:
   #D = librosa.core.stft(y)
-  #n_components = 12
-
-  # model = NMF(init='random')
-  # model.fit(np.abs(D))
+  #n_components = 5
 
   #W, H = librosa.decompose.decompose(np.abs(D), n_components=n_components, sort=True)
 
   #print W.shape
   #print H.shape
 
-  #logW = np.log10(W)
-
   #for n in range(n_components):
   #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
-  #  plt.plot(logW[:, n])
-  #  plt.ylim(-2, logW.max())
-  #  plt.xlim(0, W.shape[0])
+  #  plt.plot(W[:, n])
+  #  plt.ylim(0, W.max())
+  #  # plt.xlim(0, W.shape[0])
+  #  plt.xscale('log', basex=2)
+
   #  plt.ylabel('Component {}'.format(n))
 
   #plt.show()
@@ -57,8 +55,6 @@ def transcribe(filename):
   # Get key
   key = get_key(y)
 
-  y = remove_noise(y)
-
   # Get onset times
   onset_frames = get_onset_frames(y, sr)
 
@@ -67,8 +63,6 @@ def transcribe(filename):
   print len(onset_frames)
 
   durations = get_durations(onset_frames, tempo)
-
-  # print durations
 
   # Filter the signal.
   filtered_y = bandpass_filter(y, sr, 80., 4000.)
@@ -115,9 +109,12 @@ def get_score(notes, durations, quarter_length):
   # Key Signature
   score.insert(instrument.Guitar())
   score.insert(0, tempo.MetronomeMark(number=quarter_length))
+  #score.insert(0, key.KeySignature(-1))
+  #score.insert(0, meter.TimeSignature('2/4'))
   notes = sum(notes, [])
   for i in range(0, len(notes)):
     f = note.Note(notes[i])
+    print durations[i]
     f.duration = duration.Duration(durations[i])
     score.append(f)
 

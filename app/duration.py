@@ -5,10 +5,13 @@ def get_durations(onset_frames, tempo):
 
   # print frames_to_time(abs_durations, 44100)
 
+  quarter = 60 / float(tempo)
+
   if len(onset_frames) == 1:
     return [4.]
 
   rel_durations_min = normalize(abs_durations, min(abs_durations))
+  print "rel_durations_min: {}".format(rel_durations_min)
 
   n = 0
   sum = 0
@@ -19,22 +22,30 @@ def get_durations(onset_frames, tempo):
       n += 1
   
   min_avg = sum / float(n)
-
-  # print "Min_Avg: {}".format(frames_to_time(min_avg, 44100))
+  #print "Min_Avg: {}".format(frames_to_time(min_avg, 44100))
 
   rel_durations_min_avg = normalize(abs_durations, min_avg)
-  # print "rel_durations_min_avg: {}".format(rel_durations_min_avg)
-
-  quarter = 60 / float(tempo)
-  # print "Quarter: {}".format(quarter)
+  #print "rel_durations_min_avg: {}".format(rel_durations_min_avg)
 
   ratio = round(quarter / float(frames_to_time(min_avg, 44100)))
-  # print "Ratio: {}".format(ratio)
+  #print "Ratio: {}".format(ratio)
 
   durations = [dur / float(ratio) for dur in rel_durations_min_avg]
+  
+  durations = apply_thresh(durations)
+
+  #time_durations = frames_to_time(abs_durations, 44100)
+  #print time_durations
+  
+  #durations = [dur / float(quarter) for dur in time_durations]
   # print "Durations: {}".format(durations)
 
-  durations = apply_thresh(durations)
+  #reference_durations = [0.125, 0.25, 0.5, 1, 1.5, 2, 3, 4]
+
+  #rounded_durations = [min(reference_durations, key=lambda x:abs(x-dur)) for dur in durations]
+  #print rounded_durations
+
+  #durations = apply_thresh(rounded_durations)
 
   # print durations
 

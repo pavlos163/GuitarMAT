@@ -8,7 +8,7 @@ del path
 
 import app
 import librosa
-from onset import get_onset_frames
+from onset import get_onset_frames, detect_onset_frames
 import filter
 
 APP_ROOT = app.APP_ROOT
@@ -52,6 +52,8 @@ def eval():
   scores.append(get_score('frerejacques.mp3', 32))
   scores.append(get_score('astatamalakia.mp3', 62))
   scores.append(get_score('eam.mp3', 65))
+  scores.append(get_score('fragkosirianinobass.mp3', 63))
+  scores.append(get_score('fragkosiriani.mp3', 63))
 
   print "Average score:"
   print round(sum(scores) / float(len(scores)), 3)
@@ -60,16 +62,14 @@ def get_score(filename, correct):
   sr = 44100
   y, sr = librosa.load(AUDIO_FOLDER + filename, sr=sr)
 
-  y = filter.remove_noise(y)
-
   onset_frames = get_onset_frames(y, sr)
   result = len(onset_frames)
   error = round(abs(float(correct) - float(result)) / correct, 3)
   score = 1 - error
+  print "In {}:".format(filename)
   if error != 0:
-    print "In {}:".format(filename)
     print "Correct was {} but found {}".format(correct, result)
-    print "Score: {}".format(score)
+  print "Score: {}".format(score)
   return score
 
 if __name__ == "__main__":
