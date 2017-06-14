@@ -129,6 +129,9 @@ def eval():
     ['E4'], ['D4'], ['C#4'], ['C#4'], ['D4'], ['E4'],
     ['F4'], ['G4'], ['F4'], ['E4'], ['F4'], ['E4'],
     ['D4'], ['A3'], ['D4']]))
+  
+
+
 
   print "Average score:"
   scores = remove_values_from_list(scores, -1)

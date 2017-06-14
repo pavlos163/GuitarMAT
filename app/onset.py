@@ -5,9 +5,9 @@ import madmom.features.onsets as mo
 from librosa.core import hz_to_note, frames_to_time, time_to_frames
 from madmom.audio.filters import LogarithmicFilterbank
 
-def get_onset_frames(data, sr):
-
-  sig = ms.Signal(data, sample_rate=sr, num_channels=1,
+def get_onset_frames(filename):
+  sr = 44100
+  sig = ms.Signal(filename, sr=sr, num_channels=1,
     norm=True)
 
   #######################################
@@ -52,10 +52,7 @@ def get_onset_frames(data, sr):
     log=np.log10, norm=True)(sig)
   onset_frames = mo.peak_picking(sodf, threshold=14, pre_max=2, post_max=8,
     pre_avg=30, post_avg=30, smooth=3)
-  #print onset_frames
   #######################################
-
-  onset_frames = remove_dense_onsets(onset_frames)
 
   #######################################
   # CNN:
@@ -75,6 +72,8 @@ def get_onset_frames(data, sr):
   #onset_frames = mo.peak_picking(sodf, threshold=0.7, pre_max=4, post_max=10,
   #  pre_avg=15, post_avg=0, smooth=20)
   #######################################
+
+  onset_frames = remove_dense_onsets(onset_frames)
 
   return frames_to_librosa_frames(onset_frames, sr)
 

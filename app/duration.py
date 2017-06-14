@@ -1,14 +1,14 @@
 from librosa.core import frames_to_time
 
 def get_durations(onset_frames, tempo):
+  if len(onset_frames) == 1:
+    return [4.]
+
   abs_durations = get_diff_succesive_onsets(onset_frames)
 
   # print frames_to_time(abs_durations, 44100)
 
   quarter = 60 / float(tempo)
-
-  if len(onset_frames) == 1:
-    return [4.]
 
   rel_durations_min = normalize(abs_durations, min(abs_durations))
   print "rel_durations_min: {}".format(rel_durations_min)

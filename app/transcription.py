@@ -3,6 +3,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 import essentia
 import essentia.standard as ess
+import numpy as np
 from music21 import *
 from librosa.core import hz_to_note, time_to_frames, frames_to_time
 from onset import get_onset_frames
@@ -10,9 +11,9 @@ from pitch import get_pitches
 from chords import get_chords
 from duration import get_durations
 from sklearn.decomposition import NMF
+from scipy import interpolate
 from filter import bandpass_filter, remove_noise
 from util import *
-from scipy.signal import medfilt
 
 def transcribe(filename):
   sr = 44100
@@ -20,22 +21,72 @@ def transcribe(filename):
 
   y, sr = librosa.load(filename, sr=sr)
 
+  #arrays = []
+  #arrays.append(np.loadtxt("static/A3.txt"))
+  #arrays.append(np.loadtxt("static/B3.txt"))
+  #arrays.append(np.loadtxt("static/G3.txt"))
+  #arrays.append(np.loadtxt("static/D4.txt"))
+  #arrays.append(np.loadtxt("static/C4.txt"))
+
+  #newW = np.column_stack(arrays)
+
+  #np.savetxt("newW.txt", newW)
+
+  #print "NewW.shape: {}".format(newW.shape)
+
+  #newW = np.loadtxt("newW.txt")
+
+  #fixed_H = newW.T
+
   # NMF:
   #D = librosa.core.stft(y)
-  #n_components = 5
+  #n_components = newW.shape[1]
+
+  #model = NMF(n_components=n_components, init='custom', H=fixed_H, update_H=False, random_state=0)
+  #model.fit(D)
+
+  #activations = model.components
+  #activationsT = model.components.T
+
+  #print activations.shape
+  #print activationsT.shape
+
+  #for n in range(n_components):
+  #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
+  #  plt.plot(activations[n])
+  #  plt.ylim(0, activations.max())
+  #  plt.xlim(0, activations.shape[1])
+  #  plt.ylabel('Component {}'.format(n))
+
+  #plt.show()
+
+  #for n in range(n_components):
+  #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
+  #  plt.plot(activationsT[n])
+  #  plt.ylim(0, activationsT.max())
+  #  plt.xlim(0, activationsT.shape[1])
+  #  plt.ylabel('Component {}'.format(n))
+
+  #plt.show()
+
 
   #W, H = librosa.decompose.decompose(np.abs(D), n_components=n_components, sort=True)
 
   #print W.shape
   #print H.shape
 
+  # np.savetxt(filename[:-4] + ".txt", W[:, 0])
+
   #for n in range(n_components):
+  #  pitchYinFFT = ess.PitchYinFFT(maxFrequency=1600, minFrequency=80)
+  #  pitch = pitchYinFFT(essentia.array(W[:, n]))
+
+  #  print pitch
+
   #  plt.subplot(np.ceil(n_components/2.0), 2, n+1)
   #  plt.plot(W[:, n])
   #  plt.ylim(0, W.max())
-  #  # plt.xlim(0, W.shape[0])
-  #  plt.xscale('log', basex=2)
-
+  #  plt.xlim(0, 200)
   #  plt.ylabel('Component {}'.format(n))
 
   #plt.show()
@@ -56,11 +107,11 @@ def transcribe(filename):
   key = get_key(y)
 
   # Get onset times
-  onset_frames = get_onset_frames(y, sr)
+  onset_frames = get_onset_frames(filename)
 
   # print frames_to_time(onset_frames, sr)
 
-  print len(onset_frames)
+  #print len(onset_frames)
 
   durations = get_durations(onset_frames, tempo)
 
