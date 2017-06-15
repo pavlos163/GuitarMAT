@@ -11,7 +11,7 @@ def get_durations(onset_frames, tempo):
   quarter = 60 / float(tempo)
 
   rel_durations_min = normalize(abs_durations, min(abs_durations))
-  print "rel_durations_min: {}".format(rel_durations_min)
+  # print "rel_durations_min: {}".format(rel_durations_min)
 
   n = 0
   sum = 0
