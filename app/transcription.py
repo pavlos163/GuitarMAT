@@ -12,7 +12,9 @@ from pitch import get_pitches
 from chords import get_chords
 from duration import get_durations
 from sklearn.decomposition import NMF, non_negative_factorization
-from filter import bandpass_filter
+from sklearn.preprocessing import normalize
+from filter import *
+from scipy.signal import medfilt
 from util import *
 
 def transcribe(filename):
@@ -23,39 +25,33 @@ def transcribe(filename):
 
   onset_frames = get_onset_frames(filename)
 
-  # To create the pitch template in a text file:
-  # createTextTemplate(filename, y, sr)
+  notes_at_onsets = nmf(y, sr, onset_frames)
+  notes = []
 
-  # To form the W matrix from the pitch templates:
-  # setupComponents()
+  for tup in sorted(notes_at_onsets.items()):
+    print tup
+    print "New onset."
 
-  #notes_at_onsets = nmf(y, sr, onset_frames)
-  #notes = []
+    tup_notes = []
+    for comp in tup[1]:
+      tup_notes.append(component_to_note(comp))
 
-  #for tup in sorted(notes_at_onsets.items()):
-  #  print tup
-  #  print "New onset."
-
-  #  tup_notes = []
-  #  for comp in tup[1]:
-  #    tup_notes.append(component_to_note(comp))
-
-  #  notes.append(tup_notes)
+    notes.append(tup_notes)
 
   # Get tempo, key and durations.
   tempo = get_tempo(y)
   key = get_key(y)
-  durations = get_durations(onset_frames, tempo)
+  # durations = get_durations(onset_frames, tempo)
 
   # Filter the signal.
   filtered_y = bandpass_filter(y, sr, 80., 4000.)
 
   # Single pitch detection.
-  pitches = get_pitches(filtered_y, sr, onset_frames, 'autocorr')
-  notes = pitches_to_notes(pitches)
+  #pitches = get_pitches(filtered_y, sr, onset_frames, 'autocorr')
+  #notes = pitches_to_notes(pitches)
 
   # Convert to Music21 stream and export to MusicXML file.
-  score = get_score(notes, tempo, durations, multi=False)
+  score = get_score(notes, tempo, multi=True)
 
   score.write("musicxml", "static/piece.mxl")
 
@@ -105,56 +101,19 @@ def get_key(y):
   key = key_extractor(essentia.array(y))
   return key
 
-def setupComponents():
-  # TODO: Search recursively in nmf/ directory for all files.
-  arrays = []
-  arrays.append(np.loadtxt("static/E2.txt"))
-  arrays.append(np.loadtxt("static/F2.txt"))
-  arrays.append(np.loadtxt("static/Fsharp2.txt"))
-  arrays.append(np.loadtxt("static/G2.txt"))
-  arrays.append(np.loadtxt("static/Gsharp2.txt"))
-  arrays.append(np.loadtxt("static/A2.txt"))
-  arrays.append(np.loadtxt("static/Asharp2.txt"))
-  arrays.append(np.loadtxt("static/B2.txt"))
-  arrays.append(np.loadtxt("static/C3.txt"))
-  arrays.append(np.loadtxt("static/Csharp3.txt"))
-  arrays.append(np.loadtxt("static/D3.txt"))
-  arrays.append(np.loadtxt("static/Dsharp3.txt"))
-  arrays.append(np.loadtxt("static/E3.txt"))
-  arrays.append(np.loadtxt("static/F3.txt"))
-  arrays.append(np.loadtxt("static/Fsharp3.txt"))
-  arrays.append(np.loadtxt("static/G3.txt"))
-  arrays.append(np.loadtxt("static/Gsharp3.txt"))
-  arrays.append(np.loadtxt("static/A3.txt"))
-  arrays.append(np.loadtxt("static/Asharp3.txt"))
-  arrays.append(np.loadtxt("static/B3.txt"))
-  arrays.append(np.loadtxt("static/C4.txt"))
-  arrays.append(np.loadtxt("static/Csharp4.txt"))
-  arrays.append(np.loadtxt("static/D4.txt"))
-  arrays.append(np.loadtxt("static/Dsharp4.txt"))
-  arrays.append(np.loadtxt("static/E4.txt"))
-  arrays.append(np.loadtxt("static/F4.txt"))
-  arrays.append(np.loadtxt("static/Fsharp4.txt"))
-  arrays.append(np.loadtxt("static/G4.txt"))
-  arrays.append(np.loadtxt("static/Gsharp4.txt"))
-  arrays.append(np.loadtxt("static/A4.txt"))
-
-  newW = np.column_stack(arrays)
-
-  np.savetxt("newW.txt", newW)
-
-def createTextTemplate(filename, y, sr):
-  D = librosa.core.stft(y)
-  W, H = librosa.decompose.decompose(np.abs(D), n_components=1, sort=True)
-  print filename[:-4] + ".txt"
-  np.savetxt(filename[:-4] + ".txt", W[:, 0])
-
 def nmf(y, sr, onset_frames):
   newW = np.loadtxt("newW.txt")
 
   fixed_H = newW.T
 
   D = np.abs(librosa.core.stft(y)).T
+
+  for row in range(0, len(D)):
+    mf = medfilt(D[row])
+    vec = D[row] - mf
+    spectrum = vec.clip(min=0)
+    D[row] = spectrum
+
   n_components = newW.shape[1]
 
   W, H, n_iter = non_negative_factorization(D, n_components=n_components, 
@@ -182,6 +141,17 @@ def nmf(y, sr, onset_frames):
   plt.show()
 
   for n in range(n_components):
+    plt.subplot(np.ceil(n_components/2.0), 2, n+1)
+    plt.plot(fixed_H[n])
+    plt.ylim(0, fixed_H.max())
+    plt.xlim(0, fixed_H.shape[1])
+    plt.ylabel(component_to_note(n))
+    plt.xticks([])
+    plt.yticks([])
+
+  plt.show()
+
+  for n in range(n_components):
     indexes = peakutils.indexes(activations[n], thres=0.6, min_dist=20)
     print "Component {}: {}".format(n, component_to_note(n))
     print "Component {}: {}".format(n, [activations[n, i] for i in indexes])
@@ -196,6 +166,15 @@ def nmf(y, sr, onset_frames):
           break
 
   return notes_onsets
+
+def get_tuning(spectrum):
+    speaks = ess.SpectralPeaks()
+    frequencies, magnitudes = speaks(essentia.array(spectrum))
+
+    tuning = ess.TuningFrequency()
+    freq, cents = tuning(frequencies, magnitudes)
+    print freq
+    print cents
 
 def component_to_note(component_number):
   components = {0: "E2",

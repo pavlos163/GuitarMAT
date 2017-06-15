@@ -16,7 +16,7 @@ import filter
 import madmom.evaluation.onsets as madeval
 
 APP_ROOT = app.APP_ROOT
-AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
+AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/dataset')
 
 # TODO: This should be done with recall, precision and f-measure.
 

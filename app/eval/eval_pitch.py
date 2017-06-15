@@ -20,7 +20,7 @@ import essentia
 from scipy.signal import medfilt
 
 APP_ROOT = app.APP_ROOT
-AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/')
+AUDIO_FOLDER = os.path.join(APP_ROOT, 'static/audio/dataset')
 
 def eval():
   scores = []
