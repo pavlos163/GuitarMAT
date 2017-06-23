@@ -2,7 +2,7 @@ import librosa
 import numpy as np
 import essentia
 import essentia.standard as ess
-from scipy.signal import butter, sosfilt, firls, filtfilt
+from scipy.signal import butter, sosfilt, firls, filtfilt, medfilt
 
 def bandpass_filter(y, sr, lowcut, highcut, filter_order=3):
   # Setup parameters.
@@ -38,3 +38,12 @@ def remove_noise(y):
 
   filtered_y = y - ma_y
   return filtered_y
+
+def medfilt_spectrogram(D):
+  for frame in range(0, D.shape[1]):
+    mf = medfilt(D[:, frame])
+    vec = D[:, frame] - mf
+    spectrum = vec.clip(min=0)
+    D[:, frame] = spectrum
+
+  return D

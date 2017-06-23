@@ -6,13 +6,13 @@ from flask_bootstrap import Bootstrap
 from werkzeug.utils import secure_filename
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(APP_ROOT, 'static/')
+STATIC_FOLDER = os.path.join(APP_ROOT, 'static/')
 PLOT_FOLDER = os.path.join(APP_ROOT, 'static/plots/')
 ALLOWED_EXTENSIONS = set(['.wav', '.mp3', '.aif'])
 
-app = Flask(__name__, static_url_path=UPLOAD_FOLDER)
+app = Flask(__name__, static_url_path=STATIC_FOLDER)
 Bootstrap(app)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = STATIC_FOLDER
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 5
 app.debug = True
 app.secret_key = 'notverysecret'
@@ -44,13 +44,13 @@ def index():
 
 @app.route('/mxl')
 def mxl():
-  return send_from_directory(UPLOAD_FOLDER, 'piece.mxl')
+  return send_from_directory(STATIC_FOLDER, 'piece.mxl')
 
 def handle_file(file):
   filename = secure_filename(file.filename)
   filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
   file.save(filepath)
-  pitches = transcribe(filepath)
+  pitches = transcribe(filepath, STATIC_FOLDER)
   os.remove(filepath)
   return pitches
 

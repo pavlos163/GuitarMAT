@@ -2,10 +2,11 @@ import os
 import app
 import librosa
 import numpy as np
+from util import *
 
-APP_ROOT = app.APP_ROOT
-NMF_FOLDER = os.path.join(APP_ROOT, 'static/audio/nmf/')
-NMF_TXT_FOLDER = os.path.join(APP_ROOT, 'static/nmf_templates/')
+STATIC_FOLDER = app.STATIC_FOLDER
+NMF_FOLDER = os.path.join(STATIC_FOLDER, 'audio/nmf/combined/')
+NMF_TXT_FOLDER = os.path.join(STATIC_FOLDER, 'nmf_templates/')
 
 def setup_components():
   audio_files = [os.path.join(dp, f) for dp, dn, filenames
@@ -54,16 +55,15 @@ def create_matrix():
 
   newW = np.column_stack(arrays)
 
-  np.savetxt("newW.txt", newW)
+  np.savetxt(STATIC_FOLDER + "W.txt", newW)
 
 def createTextTemplate(file_dir, filename):
   sr = 44100
   y, sr = librosa.load(file_dir, sr=sr)
 
-  D = np.abs(librosa.core.stft(y))
-  print D.shape
+  D = np.abs(librosa.core.stft(y))  
   
-  W, H = librosa.decompose.decompose(D, n_components=1, sort=True)
+  W, H = librosa.decompose.decompose(D, n_components=1)
   save_file = NMF_TXT_FOLDER + filename[:-4] + ".txt"
   print save_file
   np.savetxt(save_file, W[:, 0])

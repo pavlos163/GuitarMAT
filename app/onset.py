@@ -2,8 +2,9 @@ import librosa
 import numpy as np
 import madmom.audio.signal as ms
 import madmom.features.onsets as mo
-from librosa.core import hz_to_note, frames_to_time, time_to_frames
+from librosa.core import hz_to_note, frames_to_time
 from madmom.audio.filters import LogarithmicFilterbank
+from util import *
 
 def get_onset_frames(filename):
   sr = 44100
@@ -75,11 +76,7 @@ def get_onset_frames(filename):
 
   onset_frames = remove_dense_onsets(onset_frames)
 
-  return frames_to_librosa_frames(onset_frames, sr)
-
-def frames_to_librosa_frames(onset_frames, sr):
-  onset_times = [float(x)/200. for x in onset_frames]
-  return time_to_frames(onset_times, sr)
+  return madmom_frames_to_librosa_frames(onset_frames, sr)
 
 # This is not used anymore, as superflux proved to be more accurate.
 def detect_onset_frames(y, sr, pitches, magnitudes):

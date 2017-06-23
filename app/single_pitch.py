@@ -4,17 +4,18 @@ import peakutils
 import essentia
 import essentia.standard as ess
 from librosa.core import frames_to_time
-from scipy.signal import kaiser, fftconvolve
-from util import remove_values_from_list
+from scipy.signal import kaiser, fftconvolve, hanning
+from util import *
 
 # Checking the pitch some frames the onset time increased precision.
-def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, fmax=4000):
+def get_mono_notes(y, sr, onset_frames, method='autocorr',
+  stft_offset=25, fmin=80, fmax=4000):
   result_pitches = []
 
   pitches, magnitudes = librosa.piptrack(y=y, 
     sr=sr, fmin=fmin, fmax=fmax)
 
-  if method == 'stft':
+  if method == 'stqifft':
     for i in range(0, len(onset_frames)):
       onset = onset_frames[i] + stft_offset
       index = magnitudes[:, onset].argmax()
@@ -29,11 +30,9 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
       pitch = freq_from_autocorr(segment, sr)
       result_pitches.append(pitch)
 
-  elif method == 'min_stft':
-
+  elif method == 'min_stqifft':
     # Getting the first N peaks. Choose the minimum one in terms of frequency.
     candidates = get_peaks(pitches, magnitudes, onset_frames, stft_offset)
-    # print candidates
     for c in candidates:
       # chord = is_chord(c)
       pitch = min(c)
@@ -46,39 +45,11 @@ def get_pitches(y, sr, onset_frames, method='autocorr', stft_offset=5, fmin=80, 
       pitch = yin(essentia.array(slice))
       result_pitches.append(pitch[0])
 
-  elif method == 'klapuri':
-    klap = ess.MultiPitchKlapuri(hopSize=128, numberHarmonics=7)
-    pitches = klap(essentia.array(y))
-    print "Onset frames:"
-    print onset_frames
-    print "Length of pitches:"
-    print len(pitches)
-    print "Whole list of pitches:"
-    print pitches
-    for i in range(0, len(onset_frames)):
-      onset = onset_frames[i] * 4
-      print onset
-      pitches_at_onset = pitches[onset]
-      #if (i < len(onset_frames) - 1):
-      #  next_onset = onset_frames[i+1] * 4
-      #else:
-      #  next_onset = librosa.core.samples_to_frames(len(y) - 1) * 4 - 1
-
-
-      #print "Onset at: {}".format(onset)
-      #for j in range(onset, next_onset - 10):
-      #  print "j: {}".format(j)
-      #  print "len(pitches): {}".format(len(pitches))
-      #  pitches_at_onset = pitches[j]
-      #  print "at {}: {}".format(j, pitches_at_onset)
-      result_pitches.append(pitches_at_onset[0])
-      print pitches_at_onset
-      print librosa.core.hz_to_note(pitches_at_onset)
-
-  return result_pitches
+  return pitches_to_notes(result_pitches)
 
 # For each note played, get the n strongest peaks in the frequency spectrum.
 def get_peaks(pitches, magnitudes, onset_frames, offset, n=4):
+    print "OFFSET: {}".format(offset)
     candidate_list = []
 
     for i in range(0, len(onset_frames)):
@@ -96,8 +67,8 @@ def get_peaks(pitches, magnitudes, onset_frames, offset, n=4):
 
     return candidate_list
 
-def segment_signal(y, sr, onset_frames, from_minima=False, offset_start=0.05,
-  offset_end=0.1):
+def segment_signal(y, sr, onset_frames, from_minima=False, offset_start=0,
+  offset_end=0.2):
 
   if from_minima:
     # We split the signal into slices that sum up to the whole signal
@@ -119,7 +90,7 @@ def segment_signal(y, sr, onset_frames, from_minima=False, offset_start=0.05,
 
   for slice in slices:
     N = len(slice)
-    slice *= kaiser(N, 100)
+    slice *= kaiser(N, 80)
 
   return slices
 
@@ -149,20 +120,34 @@ def is_chord(candidate):
       print inharmonicity_factor
 
 def freq_from_autocorr(y, sr):
-    y -= np.mean(y)
-    corr = fftconvolve(y, y[::-1], mode='full')
-    corr = corr[len(corr)//2:]
+  y -= np.mean(y)
+  corr = fftconvolve(y, y[::-1], mode='full')
+  corr = corr[len(corr)//2:]
 
-    thres = 1.2
+  thres = 1.2
 
+  i_peak = peakutils.indexes(corr, thres=thres, min_dist=5)
+
+  # Check for peaks until some greater than 76 and less than 1600 is found.
+  while i_peak.size == 0 or all(sr / i <= 78 or sr / i > 1600 for i in i_peak):
+    thres -= 0.02
+  
     i_peak = peakutils.indexes(corr, thres=thres, min_dist=5)
 
-    while i_peak.size == 0:
-        thres -= 0.02
-        i_peak = peakutils.indexes(corr, thres=thres, min_dist=5)
+    if thres < 0:
+      return 0
+  
+  i_peak = [i for i in i_peak if sr / i > 78 and sr / i <= 1600][0]
 
-    i_peak = i_peak[0]
+  # Is interpolation needed?
 
-    # Is interpolation needed?
+  return sr / i_peak
 
-    return sr / i_peak
+def pitches_to_notes(pitches):
+  notes = []
+  for pitch in pitches:
+    if pitch > 1320 or pitch < 75:
+      notes.append(['INV'])
+    else:
+      notes.append(hz_to_note(pitch))
+  return notes
