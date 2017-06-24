@@ -1,7 +1,6 @@
 import numpy as np
 import librosa
 import peakutils
-import app
 import os
 from librosa.core import hz_to_note
 from onset import get_onset_frames
@@ -24,6 +23,8 @@ def get_poly_notes(y, sr, onset_frames, static_folder=None):
     init='custom', random_state=0, update_H=False, H=newW.T)
 
   activations = W.T
+
+  plot_h_matrix(activations)
 
   notes_at_onsets = get_notes_at_onsets(activations, onset_frames)
 

@@ -7,7 +7,6 @@ from werkzeug.utils import secure_filename
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_FOLDER = os.path.join(APP_ROOT, 'static/')
-PLOT_FOLDER = os.path.join(APP_ROOT, 'static/plots/')
 ALLOWED_EXTENSIONS = set(['.wav', '.mp3', '.aif'])
 
 app = Flask(__name__, static_url_path=STATIC_FOLDER)
@@ -28,16 +27,22 @@ def index():
   if request.method == "GET":
     return render_template('index.html', request="GET")
   else:
+    print "lol"
     if 'file' not in request.files:
+      print "no file"
       flash('No file part')
       return redirect(request.url)
     file = request.files['file']
+    print file
     if file.filename == '':
+      print "no filename"
       flash('No selected file')
       return redirect(request.url)
     if file and allowed_file(file.filename):
+      print "yay"
       pitches = handle_file(file)
     else:
+      print "wrong file extension"
       flash('Wrong file extension.')
       return redirect(request.url)
     return render_template('index.html', request="POST", pitches=pitches)

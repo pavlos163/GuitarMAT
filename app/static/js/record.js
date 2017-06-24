@@ -10,7 +10,7 @@ navigator.mediaDevices.getUserMedia({audio:true})
         audioDownload.href = recordedAudio.src;
         audioDownload.download = 'audio.mp3';
         audioDownload.innerHTML = 'Download';
-        // submit(blob);
+        submit(blob);
      }
     }
   })
@@ -28,36 +28,21 @@ function stopRecording() {
   startRecord.disabled = false;
   stopRecord.disabled = true;
   rec.stop();
-  /*
-  if (document.getElementById('submitDiv') != null) {
-    return;
-  }
-
-  var submitBtn = document.createElement("input");
-  submitBtn.id = "submitBtn";
-  submitBtn.type = "button";
-  submitBtn.value = "Submit"
-  submitBtn.onclick = submit;
-
-  var submitDiv = document.createElement("div");
-  submitDiv.id = "submitDiv";
-  submitDiv.appendChild(submitBtn);
-
-  // TODO: Maybe reset button?
-
-  document.getElementById('audio').appendChild(submitDiv);
-  */
 }
 
 // TODO: This needs work. Submit button currently does not do anything.
 // Also, page does not get reloaded and therefore the results are not shown.
 // The POST request has to be done without AJAX.
 
-/*
 function submit(blob) {
-  var fd = new FormData();
-  fd.append('file', blob, 'audio.mp3');
-  $.ajax({
+  var reader = new window.FileReader();
+  reader.readAsDataURL(blob);
+  reader.onloadend = function() {
+    var fd = new FormData();
+    base64data = reader.result;
+    console.log(base64data);
+    fd.append('file', base64data, 'audio.mp3');
+    $.ajax({
       type: 'POST',
       url: '/',
       data: fd,
@@ -65,8 +50,8 @@ function submit(blob) {
       processData: false,
       contentType: false,
       enctype: 'multipart/form-data'
-  }).done(function(data) {
-         console.log(data);
-  });
+    }).done(function(data) {
+      console.log(data);
+    });
+  }
 }
-*/
