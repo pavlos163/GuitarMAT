@@ -1,0 +1,41 @@
+{%- extends "base.html" %}
+
+{% import "bootstrap/utils.html" as utils %}
+
+{% block content %}
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Your music sheet</h1>
+    </div>
+  </div>
+  
+  <div class="container">
+    <p class="lead">{{pitches}}</p>
+    <a href=".">Upload another audio file</a>
+  </div>
+
+  <div class="container" id="embed-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/flat-embed/0.3.0/embed.min.js"></script>
+  <script>
+    var container = document.getElementById('embed-container');
+    var embed = new Flat.Embed(container, {
+      embedParams: {
+        appId: '59272c649fb6db075663f5a5',
+        controlsFloating: false
+      }
+    });
+    // 
+    fetch('http://localhost:5000/mxl')
+      .then(function (response) {
+        return response.text();
+      })
+      .then(function (mxl) {
+        return embed.loadMusicXML(mxl);
+      })
+      .then(function () {
+      })
+      .catch(function (error) {
+      });
+  </script>
+{% endblock %}

@@ -1,57 +1,64 @@
-navigator.mediaDevices.getUserMedia({audio:true})
-  .then(stream => {
-    rec = new MediaRecorder(stream);
-    rec.ondataavailable = e => {
-      audio.push(e.data);
-      if (rec.state == "inactive"){
-        let blob = new Blob(audio,{type:'audio/x-mpeg-3'});
-        recordedAudio.src = URL.createObjectURL(blob);
-        recordedAudio.controls = true;
-        audioDownload.href = recordedAudio.src;
-        audioDownload.download = 'audio.mp3';
-        audioDownload.innerHTML = 'Download';
-        submit(blob);
-     }
-    }
-  })
-  .catch(e=>console.log(e));
+var rec;
+var soundStream;
+var audioFile
+
+document.getElementById("startRecord").disabled = false;
+document.getElementById("stopRecord").disabled = true;
+document.getElementById("submitRecord").disabled = true;
 
 function startRecording() {
-  startRecord.disabled = true;
-  stopRecord.disabled = false;
-  audio = [];
-  recordedAudio.controls = false;
-  rec.start();
+  document.getElementById("startRecord").disabled = true;
+  document.getElementById("stopRecord").disabled = false;
+  document.getElementById("recordedAudio").controls = false;
+  navigator.mediaDevices.getUserMedia({
+    audio: true
+  })
+  .then(stream => {
+    const aCtx = new AudioContext();
+    const streamSource = aCtx.createMediaStreamSource(stream);
+    rec = new Recorder(streamSource);
+    rec.record();
+    soundStream = stream;
+  });
 }
 
 function stopRecording() {
-  startRecord.disabled = false;
-  stopRecord.disabled = true;
-  rec.stop();
+  document.getElementById("startRecord").disabled = true;
+  document.getElementById("stopRecord").disabled = true;
+  document.getElementById("submitRecord").disabled = false;
+  soundStream.getTracks().forEach(t => t.stop());
+  rec.stop()
+  rec.exportWAV((blob) => {
+    const url = URL.createObjectURL(blob);
+    let au = new Audio(url);
+    au.controls = true;
+    document.body.appendChild(au);
+    au.play();
+    let a = document.createElement('a');
+    a.href = url;
+    a.innerHTML = 'download';
+    a.download = 'song.wav';
+    document.body.appendChild(a);
+    audioFile = blob;
+  });
 }
 
-// TODO: This needs work. Submit button currently does not do anything.
-// Also, page does not get reloaded and therefore the results are not shown.
-// The POST request has to be done without AJAX.
-
-function submit(blob) {
-  var reader = new window.FileReader();
-  reader.readAsDataURL(blob);
-  reader.onloadend = function() {
-    var fd = new FormData();
-    base64data = reader.result;
-    console.log(base64data);
-    fd.append('file', base64data, 'audio.mp3');
-    $.ajax({
-      type: 'POST',
-      url: '/',
-      data: fd,
-      cache: false,
-      processData: false,
-      contentType: false,
-      enctype: 'multipart/form-data'
-    }).done(function(data) {
-      console.log(data);
-    });
-  }
+function submit() {
+  var fd = new FormData();
+  fd.append('file', audioFile, 'audio.wav');
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/sheet');
+  xhr.send(fd)
+  /*$.ajax({
+    type: 'POST',
+    url: '/',
+    data: fd,
+    cache: false,
+    processData: false,
+    contentType: false,
+    enctype: 'multipart/form-data'
+  }).done(function(data) {
+    console.log(data);
+  });
+  */
 }

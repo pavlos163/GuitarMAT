@@ -19,6 +19,7 @@ def transcribe(filename, static_folder):
   bpm = get_tempo(y)
 
   durations = get_durations(onset_frames, bpm)
+  print durations
 
   # Monophonic transcription:
   notes = get_mono_notes(y, sr, onset_frames, 'autocorr')

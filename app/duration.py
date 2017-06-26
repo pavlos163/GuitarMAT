@@ -29,6 +29,10 @@ def get_durations(onset_frames, tempo):
 
   ratio = round(quarter / float(frames_to_time(min_avg, 44100)))
   #print "Ratio: {}".format(ratio)
+  print ratio
+  print quarter
+  print float(frames_to_time(min_avg, 44100))
+  print quarter / float(frames_to_time(min_avg, 44100))
 
   durations = [dur / float(ratio) for dur in rel_durations_min_avg]
   

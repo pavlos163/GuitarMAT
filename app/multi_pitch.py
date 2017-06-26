@@ -24,7 +24,7 @@ def get_poly_notes(y, sr, onset_frames, static_folder=None):
 
   activations = W.T
 
-  plot_h_matrix(activations)
+  # plot_h_matrix(activations)
 
   notes_at_onsets = get_notes_at_onsets(activations, onset_frames)
 
@@ -53,6 +53,15 @@ def get_notes_at_onsets(activations, onset_frames):
   # Combined: 0.6, 0.35, 15
   # Real: 0.7, 0.4, 15: 53.7
 
+  # Attempted to increase amplitude of lower notes.
+  # alpha = np.linspace(25., 1., n_components)
+  # print alpha
+  
+  # for comp in range(n_components):
+  #   activations[comp] = [i * alpha[comp] for i in activations[comp]]
+
+  # plot_h_matrix(activations)
+
   for comp in range(n_components):
     print nmf_component_to_note(comp)
     note = nmf_component_to_note(comp)
@@ -61,9 +70,10 @@ def get_notes_at_onsets(activations, onset_frames):
     print "Original: {}".format(indices)
     for i in indices:
       print "Strength: {}".format(activations[comp, i])
-      print "Strength in neighbours: {}".format(sum(activations[comp, i-10:i+10]))
+      print "Strength in neighbours: {}".format(sum(activations[comp, i:i+20]))
     # Filter by absolute threshold as well.
-    filtered_indices = [i for i in indices if activations[comp, i] > 0.05]
+    filtered_indices = [i for i in indices if activations[comp, i] > 0.02]
+    filtered_indices = [i for i in filtered_indices if sum(activations[comp, i:i+20]) > 0.25]
     print "Filtered: {}".format(filtered_indices)
     # For each found peak, find its closest onset based on the onset_frames.
     # If it close enough, then add it to our dict.

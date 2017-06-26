@@ -1,3 +1,7 @@
 #embed-container {
   height: 500px;
 }
+
+hr {
+  border-width: 2px;
+}

@@ -22,34 +22,32 @@ def allowed_file(filename):
     and os.path.splitext(filename)[1].lower() in ALLOWED_EXTENSIONS
   )
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-  if request.method == "GET":
-    return render_template('index.html', request="GET")
-  else:
-    print "lol"
-    if 'file' not in request.files:
-      print "no file"
-      flash('No file part')
-      return redirect(request.url)
-    file = request.files['file']
-    print file
-    if file.filename == '':
-      print "no filename"
-      flash('No selected file')
-      return redirect(request.url)
-    if file and allowed_file(file.filename):
-      print "yay"
-      pitches = handle_file(file)
-    else:
-      print "wrong file extension"
-      flash('Wrong file extension.')
-      return redirect(request.url)
-    return render_template('index.html', request="POST", pitches=pitches)
+  return render_template('index.html', request="GET")
 
 @app.route('/mxl')
 def mxl():
   return send_from_directory(STATIC_FOLDER, 'piece.mxl')
+
+@app.route('/sheet', methods=['POST'])
+def sheet():
+  if 'file' not in request.files:
+    flash('No file part')
+    return redirect(request.url)
+  file = request.files['file']
+  print file
+  if file.filename == '':
+    flash('No selected file')
+    return redirect(request.url)
+  if file and allowed_file(file.filename):
+    print "yay"
+    pitches = handle_file(file)
+    print "done?"
+  else:
+    flash('Wrong file extension.')
+    return redirect(request.url)
+  return render_template('sheet.html', pitches=pitches)
 
 def handle_file(file):
   filename = secure_filename(file.filename)

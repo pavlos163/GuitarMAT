@@ -3,8 +3,6 @@
 {% import "bootstrap/utils.html" as utils %}
 
 {% block content %}
-  {% if request == "GET": %}
-
   <div class="jumbotron">
     <div class="container">
       <h1>Automatic Guitar Music Transcription</h1>
@@ -12,68 +10,38 @@
   </div>
   <div class="container">
     <p class="lead">Upload your audio file below:</p>
-    <form method="POST" action="/" enctype="multipart/form-data">
+    <form method="POST" action="/sheet" enctype="multipart/form-data">
       <input name="file" type="file"/>
       <input type="submit"/>
     </form>
   </div>
 
-  <h1>Or record your audio here!</h1>
-  <div id="audio">
-    <p>
-      <button id=startRecord onclick="startRecording()">Start</button>
-      <button id=stopRecord onclick="stopRecording()">Stop</button>
-    </p>
-    <p>
-      <audio id=recordedAudio></audio>
-    </p>
-    <p>
-      <a id=audioDownload></a>
-    </p>
+  <div class="container">
+    <hr>
   </div>
 
-  {% else: %}
-
-  <div class="jumbotron">
-    <div class="container">
-      <h1>Your music sheet</h1>
+  <div class="container">
+    <p class="lead">Or, record your audio here!</p>
+    <div id="audio">
+      <p>
+        <button id=startRecord onclick="startRecording()">Start</button>
+        <button id=stopRecord onclick="stopRecording()">Stop</button>
+        <button id=submitRecord onclick="submit()">Submit</button>
+      </p>
+      <p>
+        <audio id=recordedAudio></audio>
+      </p>
+      <p>
+        <a id=audioDownload></a>
+      </p>
     </div>
   </div>
-  
-  <div class="container">
-    <p class="lead">{{pitches}}</p>
-    <a href=".">Upload another audio file</a>
-  </div>
 
-  <div class="container" id="embed-container"></div>
-
-  <script src="https://cdn.jsdelivr.net/flat-embed/0.3.0/embed.min.js"></script>
-  <script>
-    var container = document.getElementById('embed-container');
-    var embed = new Flat.Embed(container, {
-      embedParams: {
-        appId: '59272c649fb6db075663f5a5',
-        controlsFloating: false
-      }
-    });
-    // 
-    fetch('http://localhost:5000/mxl')
-      .then(function (response) {
-        return response.text();
-      })
-      .then(function (mxl) {
-        return embed.loadMusicXML(mxl);
-      })
-      .then(function () {
-      })
-      .catch(function (error) {
-      });
-  </script>
-
-  {% endif %}
 {% endblock %}
 
 {% block scripts %}
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js" type="text/javascript"></script>
-  <script src="{{url_for('static', filename='js/record.js')}}"></script>
+  <script src="https://rawgit.com/mattdiamond/Recorderjs/master/dist/recorder.js" type="text/javascript"></script>
+  <script src="{{url_for('static', filename='js/record.js')}}"
+  type="text/javascript"></script>
 {% endblock %}
